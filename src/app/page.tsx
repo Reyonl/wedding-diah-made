@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ClientWedding } from "@/components/ClientWedding";
 import { wedding } from "@/lib/data";
-import { asset } from "@/lib/asset";
 
 const desc =
   "Pernikahan Diah Insani & I Made Ariana Putra — Sabtu, 28 November 2026. Perpaduan luhur adat Minangkabau dan Bali. #DiahMade";
@@ -12,7 +11,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Wedding of Diah & Made",
     description: desc,
-    images: [asset(wedding.coverPhoto)],
+    // Resolved terhadap metadataBase (https://reyonl.github.io/wedding-diah-made/).
+    images: ["/images/cover.jpg"],
   },
 };
 

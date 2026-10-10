@@ -9,7 +9,6 @@ import "./globals.css";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { AudioProvider } from "@/components/providers/AudioProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
-import { asset } from "@/lib/asset";
 
 const cinzelDeco = Cinzel_Decorative({
   variable: "--font-cinzel-deco",
@@ -62,13 +61,13 @@ export const metadata: Metadata = {
     description:
       "Kami mengundang Anda untuk hadir berbagi kebahagiaan pada Sabtu, 28 November 2026. #DiahMade",
     url: siteUrl,
-    images: [asset("/images/cover.jpg")],
+    images: ["/images/cover.jpg"],
   },
   twitter: {
     card: "summary_large_image",
     title: "The Wedding of Diah & Made",
     description: "Sabtu, 28 November 2026 — #DiahMade",
-    images: [asset("/images/cover.jpg")],
+    images: ["/images/cover.jpg"],
   },
 };
 
