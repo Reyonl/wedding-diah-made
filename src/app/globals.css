@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   The Wedding of Diah & Made — Royal Balinese × Minangkabau
+   Design System (Tailwind v4 CSS-first theme)
+   ───────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Palette (from original static site) */
+  --color-night: #0f0a08;
+  --color-surface: #18110e;
+  --color-maroon: #5a0f14;
+  --color-crimson: #b3141f;
+  --color-gold: #d4a53a;
+  --color-goldlight: #f2c94c;
+  --color-ivory: #fff4dc;
+  --color-charcoal: #231815;
+
+  /* Editorial wedding fonts */
+  --font-cinzel: "Cinzel Decorative", serif;
+  --font-cormorant: "Cormorant Garamond", serif;
+  --font-vibes: "Great Vibes", cursive;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Motion */
+  --ease-lux: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Gold gradient text helper */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #fbf0b9 0%, #d4a53a 50%, #aa771c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #f2c94c 0%, #d4a53a 50%, #b8861b 100%);
+}
+.gold-box-shadow {
+  box-shadow:
+    0 10px 30px -10px rgba(212, 165, 58, 0.25),
+    0 0 1px 1px rgba(242, 201, 76, 0.2);
+}
+.gold-glow {
+  box-shadow: 0 0 25px rgba(212, 165, 58, 0.4);
+}
+
+/* Prada-dotted surface (save-the-date background) */
+.bg-prada {
+  background-color: #0f0a08;
+  background-image:
+    radial-gradient(rgba(212, 165, 58, 0.12) 1.5px, transparent 1.5px),
+    radial-gradient(rgba(242, 201, 76, 0.08) 1.5px, #0f0a08 1.5px);
+  background-size: 32px 32px;
+  background-position:
+    0 0,
+    16px 16px;
+}
+
+/* Songket woven accent strip */
+.songket-border {
+  background: repeating-linear-gradient(
+    90deg,
+    #b3141f 0px,
+    #b3141f 12px,
+    #d4a53a 12px,
+    #d4a53a 18px,
+    #5a0f14 18px,
+    #5a0f14 26px,
+    #f2c94c 26px,
+    #f2c94c 32px
+  );
+}
+
+/* Falling petals */
+@keyframes petal-fall {
+  0% {
+    transform: translateY(-5vh) rotate(0deg) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(105vh) rotate(360deg) translateX(60px);
+    opacity: 0;
+  }
+}
+.animate-petal {
+  animation: petal-fall linear infinite;
+}
+
+/* Vinyl spin */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 9s linear infinite;
+  animation-play-state: paused;
+}
+.animate-spin-slow.spinning {
+  animation-play-state: running;
+}
+
+/* Equalizer bars */
+@keyframes eq-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.eq-bar {
+  transform-origin: bottom;
+  animation: eq-bounce 1s ease-in-out infinite;
+}
+
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #18110e;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d4a53a;
+  border-radius: 9999px;
+}
+
+/* Native scrollbar for the whole page (dark luxury) */
+html {
+  scrollbar-color: #d4a53a #18110e;
+  scrollbar-width: thin;
+}
+::selection {
+  background: #d4a53a;
+  color: #0f0a08;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
