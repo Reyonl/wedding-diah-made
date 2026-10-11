@@ -1,17 +1,15 @@
 /**
- * Base path helper.
+ * Base path asset helper for GitHub Pages static export.
  *
- * GitHub Pages melayani repo di subpath `/wedding-diah-made/`, sehingga
- * asset yang ditulis absolut (`/images/..`) akan 404 di produksi.
- * Next otomatis meng-prefix `/_next/*`, tapi <img>/<audio>/metadata TIDAK,
- * jadi semua path asset publik harus lewat `asset()`.
- *
- * NEXT_PUBLIC_BASE_PATH dikosongkan untuk dev (root) dan diisi
- * `/wedding-diah-made` saat build untuk GitHub Pages.
+ * Prefixes `NEXT_PUBLIC_BASE_PATH` (e.g. `/wedding-diah-made`)
+ * to all absolute public asset paths (images, audio, css urls).
  */
+
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-export function asset(path: string): string {
+export function asset(path?: string | null): string {
+  if (!path) return "";
   if (!path.startsWith("/")) return path;
-  return `${BASE_PATH}${path}`;
+  const cleanBase = BASE_PATH.endsWith("/") ? BASE_PATH.slice(0, -1) : BASE_PATH;
+  return `${cleanBase}${path}`;
 }

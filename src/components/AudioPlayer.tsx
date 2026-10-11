@@ -1,64 +1,78 @@
 "use client";
 
-import { Music2, Pause, Play } from "lucide-react";
-import { wedding } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Pause, Play } from "lucide-react";
+import { wedding } from "@/data/wedding";
 import { useAudio } from "@/components/providers/AudioProvider";
 
-const BAR_DELAYS = [0, 0.18, 0.36, 0.12, 0.28];
-
 export function AudioPlayer() {
-  const { playing, toggle, levels } = useAudio();
+  const { playing, toggle } = useAudio();
+  const [showPill, setShowPill] = useState(false);
+
+  // Show pill for 3 seconds only when playback starts, then hide
+  useEffect(() => {
+    if (playing) {
+      setShowPill(true);
+      const timer = setTimeout(() => setShowPill(false), 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowPill(false);
+    }
+  }, [playing]);
+
+  // Pause playback automatically when tab is hidden (visibilitychange)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden && playing) {
+        toggle();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [playing, toggle]);
 
   return (
-    <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex items-center gap-3">
-      {/* Toast label */}
-      <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface/90 border border-gold/40 text-xs text-gold tracking-wide backdrop-blur-md shadow-lg">
-        <span
-          className={`w-2 h-2 rounded-full ${
-            playing ? "bg-emerald-400 animate-ping" : "bg-amber-400"
-          }`}
-        />
-        <span>{playing ? `Memutar: ${wedding.audioTitle}` : "Musik dijeda"}</span>
-      </div>
+    <div className="fixed bottom-5 right-5 z-30 flex items-center gap-2.5 pointer-events-none">
+      {/* Ephemeral toast pill (visible for only 3s after playback starts) */}
+      <AnimatePresence>
+        {showPill ? (
+          <motion.div
+            initial={{ opacity: 0, x: 12, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 8, scale: 0.95 }}
+            transition={{ duration: 0.25 }}
+            className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-night/95 border border-gold/40 text-xs text-gold font-sans shadow-lg"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
+            <span className="whitespace-nowrap">
+              Memutar: {wedding.music.title}
+            </span>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
-      {/* Equalizer bars */}
-      <div className="hidden sm:flex items-end gap-[3px] h-6 px-1" aria-hidden="true">
-        {levels.map((lvl, i) => (
-          <span
-            key={i}
-            className="w-[3px] rounded-full bg-gold/80 eq-bar"
-            style={{
-              height: `${Math.max(12, lvl * 100)}%`,
-              animationDelay: `${BAR_DELAYS[i]}s`,
-              animationPlayState: playing ? "running" : "paused",
-            }}
-          />
-        ))}
-      </div>
-
+      {/* Floating round music button with rotating disc icon */}
       <button
         onClick={toggle}
-        className="w-14 h-14 rounded-full gold-gradient-bg text-night flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 relative group gold-glow cursor-pointer"
-        title={playing ? "Jeda musik latar" : "Putar musik latar"}
+        aria-pressed={playing}
         aria-label={playing ? "Jeda musik latar" : "Putar musik latar"}
+        title={playing ? "Jeda musik latar" : "Putar musik latar"}
+        className="pointer-events-auto w-12 h-12 rounded-full border border-gold/70 bg-night/95 text-gold flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer relative"
       >
-        <span className="absolute -inset-1 rounded-full border border-gold/60 animate-pulse pointer-events-none" />
-        {/* Vinyl disc */}
+        {/* Subtle rotating vinyl grooves effect when playing */}
         <span
-          className={`absolute inset-1 rounded-full border border-night/30 ${
-            playing ? "animate-spin-slow spinning" : "animate-spin-slow"
+          className={`absolute inset-1 rounded-full border border-gold/20 pointer-events-none ${
+            playing ? "animate-spin" : ""
           }`}
-          style={{
-            backgroundImage:
-              "repeating-radial-gradient(circle at center, rgba(15,10,8,0.35) 0 2px, transparent 2px 5px)",
-          }}
+          style={{ animationDuration: "6s" }}
         />
+
         {playing ? (
-          <Pause className="w-6 h-6 relative z-10" />
+          <Pause className="w-5 h-5 relative z-10" />
         ) : (
-          <Play className="w-6 h-6 relative z-10 ml-0.5" />
+          <Play className="w-5 h-5 relative z-10 ml-0.5" />
         )}
-        <Music2 className="w-3 h-3 absolute -top-0.5 -right-0.5 text-night/70" />
       </button>
     </div>
   );

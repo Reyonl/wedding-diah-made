@@ -25,11 +25,8 @@ function EventCard({ event, delay }: { event: EventData; delay: number }) {
         className="h-full p-8 rounded-3xl bg-surface/85 border border-gold/40 relative overflow-hidden backdrop-blur-md gold-box-shadow flex flex-col justify-between group hover:border-gold transition duration-300"
       >
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <span className="px-3.5 py-1 rounded-full bg-maroon text-goldlight text-[11px] font-semibold uppercase tracking-wider border border-gold/40">
-              {event.name}
-            </span>
-            <Icon className="w-6 h-6 text-gold" />
+          <div className="flex items-center justify-end mb-4">
+            <Icon className="w-5 h-5 text-gold/80" />
           </div>
 
           <h3 className="font-cinzel text-2xl font-bold text-ivory mb-2">

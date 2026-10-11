@@ -1,80 +1,112 @@
 "use client";
 
-import { useMemo } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
+import { Frangipani } from "./Frangipani";
 
 /**
- * Kelopak bunga jatuh (ambient). Deterministik agar tidak hydration-mismatch:
- * posisi/durasi dihitung dari index, bukan random runtime.
+ * Botanical Frangipani Petal Drift
+ * Replaces generic shuriken-like star petals with real Balinese Frangipani flowers.
+ * Rules: max 10 on desktop / 6 on mobile, slow gentle drift, transform-only CSS keyframes,
+ * paused via IntersectionObserver when off-screen, completely disabled under prefers-reduced-motion.
  */
-export function FallingPetals({ count = 14 }: { count?: number }) {
+export function FallingPetals({ maxDesktop = 10, maxMobile = 6 }: { maxDesktop?: number; maxMobile?: number }) {
   const prefersReduced = useReducedMotion();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // IntersectionObserver to pause animation when off-screen
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const count = isMobile ? maxMobile : maxDesktop;
+
+  // Deterministic petal distribution using golden ratio
   const petals = useMemo(() => {
-    // Deret pseudo-acak deterministik (golden-ratio hash).
-    return Array.from({ length: count }, (_, i) => {
+    return Array.from({ length: 12 }, (_, i) => {
       const r1 = (i * 0.61803398875) % 1;
-      const r2 = (i * 0.38196601125 + 0.13) % 1;
+      const r2 = (i * 0.38196601125 + 0.15) % 1;
       const r3 = (i * 0.75487766625) % 1;
       return {
-        left: `${Math.round(r1 * 96) + 2}%`,
-        duration: 9 + r2 * 7,
-        delay: r3 * 9,
-        size: 12 + Math.round(r3 * 12),
-        gold: i % 2 === 1,
+        left: `${Math.round(r1 * 90) + 5}%`,
+        duration: 14 + r2 * 8, // Very slow, gentle drift (14s - 22s)
+        delay: r3 * 10,
+        size: 20 + Math.round(r3 * 10), // 20px - 30px realistic flower size
+        initialRotate: Math.round(r1 * 360),
       };
     });
-  }, [count]);
+  }, []);
 
   if (prefersReduced) return null;
 
   return (
     <div
+      ref={containerRef}
       className="absolute inset-0 pointer-events-none z-10 overflow-hidden"
       aria-hidden="true"
     >
-      {petals.map((p, i) => (
+      {petals.slice(0, count).map((p, i) => (
         <span
           key={i}
-          className="animate-petal absolute -top-6"
+          className="absolute -top-10 will-change-transform"
           style={{
             left: p.left,
-            animationDuration: `${p.duration}s`,
+            animation: isVisible
+              ? `frangipani-fall ${p.duration}s linear infinite`
+              : "none",
             animationDelay: `${p.delay}s`,
+            animationPlayState: isVisible ? "running" : "paused",
           }}
         >
-          <svg
-            width={p.size}
-            height={p.size}
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className={p.gold ? "text-goldlight" : "text-ivory"}
-            style={{ opacity: p.gold ? 0.7 : 0.8 }}
-          >
-            <path d="M12 2C9 5 8 9 9 12C7 9 3 9 2 12C5 15 9 16 12 15C15 18 16 22 19 21C18 18 18 14 15 12C18 10 22 9 21 6C17 7 14 6 12 2Z" />
-          </svg>
+          <Frangipani
+            size={p.size}
+            style={{ transform: `rotate(${p.initialRotate}deg)` }}
+            className="opacity-75"
+          />
         </span>
       ))}
+
+      <style jsx global>{`
+        @keyframes frangipani-fall {
+          0% {
+            transform: translateY(-5vh) rotate(0deg) translateX(0);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.8;
+          }
+          85% {
+            opacity: 0.8;
+          }
+          100% {
+            transform: translateY(108vh) rotate(180deg) translateX(45px);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }
 
-/** Bola lampu melayang lembut untuk aksen. */
+/** Legacy stub kept safe for phased migration */
 export function FloatingOrbs() {
-  const prefersReduced = useReducedMotion();
-  if (prefersReduced) return null;
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-      <motion.div
-        className="absolute top-1/4 left-[12%] w-40 h-40 rounded-full bg-gold/10 blur-3xl"
-        animate={{ y: [0, -28, 0], opacity: [0.5, 0.85, 0.5] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute bottom-1/4 right-[10%] w-52 h-52 rounded-full bg-crimson/10 blur-3xl"
-        animate={{ y: [0, 26, 0], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-      />
-    </div>
-  );
+  return null;
 }

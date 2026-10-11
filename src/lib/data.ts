@@ -1,115 +1,117 @@
 // ─────────────────────────────────────────────────────────────
-// The Wedding of Diah & Made — single source of truth
-// Semua data undangan (mempelai, acara, galeri, rekening, dll).
+// Compatibility adapter re-exporting from single source of truth
+// Primary data lives in src/data/wedding.ts
 // ─────────────────────────────────────────────────────────────
 
+import { wedding as canonicalWedding } from "@/data/wedding";
+
+export { canonicalWedding };
+
 export const wedding = {
-  hashtag: "#DiahMade",
+  hashtag: canonicalWedding.hashtag,
   couple: {
     bride: {
-      fullName: "Diah Insani",
-      shortName: "Diah",
-      instagram: "@diahinsani12",
-      instagramUrl: "https://www.instagram.com/diahinsani12/",
-      parents: "Putri ke-2 dari Alm. Maraidijon M. Eza & Ibu Rina Mardiah",
-      parentsShort: "Alm. Maraidijon M. Eza & Ibu Rina Mardiah",
+      fullName: canonicalWedding.bride.name,
+      shortName: canonicalWedding.bride.nick,
+      instagram: canonicalWedding.bride.instagramHandle,
+      instagramUrl: canonicalWedding.bride.instagram,
+      parents: canonicalWedding.bride.parents,
+      parentsShort: `${canonicalWedding.bride.father} & ${canonicalWedding.bride.mother}`,
       culture: "Keluarga Besar Minangkabau",
-      photo: "/images/mempelai-wanita.jpg",
+      photo: canonicalWedding.photos.bride,
     },
     groom: {
-      fullName: "I Made Ariana Putra",
-      shortName: "Made",
-      instagram: "@tambak_grokgak",
-      instagramUrl: "https://www.instagram.com/tambak_grokgak/",
-      parents: "Putra ke-2 dari Bapak I Wayan Beratha & Ibu Ni Komang Merdani",
-      parentsShort: "Bapak I Wayan Beratha & Ibu Ni Komang Merdani",
+      fullName: canonicalWedding.groom.name,
+      shortName: canonicalWedding.groom.nick,
+      instagram: canonicalWedding.groom.instagramHandle,
+      instagramUrl: canonicalWedding.groom.instagram,
+      parents: canonicalWedding.groom.parents,
+      parentsShort: `${canonicalWedding.groom.father} & ${canonicalWedding.groom.mother}`,
       culture: "Keluarga Besar Bali",
-      photo: "/images/mempelai-pria.jpg",
+      photo: canonicalWedding.photos.groom,
+      groomBaliPhoto: canonicalWedding.photos.groomBaliPhoto,
     },
   },
   events: {
     akad: {
-      name: "Akad Nikah & Pemberkatan",
-      dayDate: "Sabtu, 28 November 2026",
-      time: "08.00 – 10.00 WIB",
-      venue: "Kediaman Mempelai Wanita",
-      address: "Jl. Dayung IIIC No. 6",
+      name: canonicalWedding.akad.title,
+      dayDate: canonicalWedding.date.fullDate,
+      time: canonicalWedding.akad.time,
+      venue: canonicalWedding.venue.name,
+      address: canonicalWedding.venue.address, // Canonical address: Jl. Dayung IIIC No. 6
       icon: "ring" as const,
     },
     resepsi: {
-      name: "Resepsi Adat & Syukuran",
-      dayDate: "Sabtu, 28 November 2026",
-      time: "11.00 – 14.00 WIB",
-      venue: "Kediaman Mempelai Wanita",
-      address: "Jl. Dayung III No. 6",
+      name: canonicalWedding.resepsi.title,
+      dayDate: canonicalWedding.date.fullDate,
+      time: canonicalWedding.resepsi.time,
+      venue: canonicalWedding.venue.name,
+      address: canonicalWedding.venue.address, // Canonical address: Jl. Dayung IIIC No. 6 (fixed bug)
       icon: "party" as const,
     },
   },
-  mapLink: "https://maps.app.goo.gl/PXkcZmXVvkohWC269",
-  audio: "/audio/baralek_gadang.mp3",
-  audioTitle: "Baralek Gadang",
+  mapLink: canonicalWedding.maps,
+  audio: canonicalWedding.music.src,
+  audioTitle: canonicalWedding.music.title,
   audioSubtitle: "Lagu Minang Tradisional",
-  coverPhoto: "/images/cover.jpg",
-  weddingDateISO: "2026-11-28T08:00:00+07:00", // Akad — target countdown
+  coverPhoto: canonicalWedding.photos.cover,
+  weddingDateISO: canonicalWedding.date.iso,
   calendar: {
-    // Google Calendar quick-add (UTC, all-day window for the ceremony date)
-    text: "The Wedding of Diah & Made",
-    details:
-      "Pernikahan Diah Insani & I Made Ariana Putra — Akad 08.00 WIB, Resepsi 11.00 WIB. Menunggu kedatangan Bapak/Ibu/Saudara/i dengan suka cita. #DiahMade",
-    location: "Jl. Dayung IIIC No. 6, Jakarta",
+    text: `The Wedding of ${canonicalWedding.bride.nick} & ${canonicalWedding.groom.nick}`,
+    details: `Pernikahan ${canonicalWedding.bride.name} & ${canonicalWedding.groom.name} — Akad 08.00 WIB, Resepsi 11.00 WIB. ${canonicalWedding.hashtag}`,
+    location: `${canonicalWedding.venue.address}`,
     dates: "20261128T010000Z/20261128T070000Z",
   },
   gallery: [
     {
       src: "/images/gallery-1.jpg",
-      title: "Dermaga Cinta & Langkah Bersama",
-      desc: "Genggaman erat di tepian dermaga menjadi lambang komitmen awal kami mengayuh biduk rumah tangga bersama.",
+      title: "Dermaga Kasih",
+      desc: "Langkah bersama di tepian dermaga menjadi lambang komitmen awal kami.",
     },
     {
       src: "/images/gallery-2.jpg",
-      title: "Pandangan Hangat Dua Jiwa",
-      desc: "Dua insan yang dipersatukan dalam cinta, keyakinan, dan restu tulus dari kedua belah pihak keluarga besar.",
+      title: "Tepian Damai",
+      desc: "Dua insan yang dipersatukan dalam cinta dan restu tulus keluarga besar.",
     },
     {
       src: "/images/gallery-3.jpg",
-      title: "Kisah Klasik Mobil Antik",
-      desc: "Momen keceriaan dan canda tawa di sisi mobil antik klasik kuning menjadi kenangan tak terlupakan sepanjang masa.",
+      title: "Kenangan Klasik",
+      desc: "Momen keceriaan dan canda tawa di sisi mobil klasik.",
     },
     {
       src: "/images/gallery-4.jpg",
-      title: "Dua Hati di Tepi Telaga",
-      desc: "Kesejukan semilir angin dan percikan air telaga mengiringi dekapan hangat janji suci kedua mempelai.",
+      title: "Jembatan Kasih",
+      desc: "Dekapan hangat dan janji suci kedua mempelai di tepi telaga.",
     },
     {
       src: "/images/gallery-5.jpg",
-      title: "Keceriaan di Titian Jembatan",
-      desc: "Mengabadikan potret bahagia saat melangkah berdua meniti jembatan merah kehidupan nan penuh harapan.",
+      title: "Senja Keemasan",
+      desc: "Mengabadikan potret bahagia di bawah temaram senja keemasan.",
     },
     {
       src: "/images/gallery-6.jpg",
-      title: "Melaju Bersama Menuju Masa Depan",
-      desc: "Bersama motor klasik Honda CB di bawah temaram senja keemasan, siap mengarungi setiap jalan kehidupan bersama.",
+      title: "Jejak Langkah",
+      desc: "Keceriaan bersama motor klasik melangkah menuju masa depan berdua.",
     },
   ],
   bankAccounts: [
     {
-      bank: "BANK BCA",
-      noRek: "2020507023",
-      holder: "I Made Ariana Putra",
+      bank: canonicalWedding.gifts.bca.bank,
+      noRek: canonicalWedding.gifts.bca.number,
+      holder: canonicalWedding.gifts.bca.holder,
       culture: "✦ BALI",
       cardGradient: "from-[#2a1c0d] via-[#3d2a12] to-[#5a3a14]",
       accent: "#f2c94c",
     },
     {
-      bank: "MANDIRI",
-      noRek: "1760004245781",
-      holder: "Diah Insani",
+      bank: canonicalWedding.gifts.mandiri.bank,
+      noRek: canonicalWedding.gifts.mandiri.number,
+      holder: canonicalWedding.gifts.mandiri.holder,
       culture: "✦ MINANG",
       cardGradient: "from-[#2a120f] via-[#3d1813] to-[#5a1c14]",
       accent: "#f2c94c",
     },
   ],
-  // Ucapan awal (buku tamu) — diisi default lalu digabung dengan localStorage
   seedWishes: [
     {
       name: "Prof. Wayan Sudarta",
@@ -136,14 +138,7 @@ export const wedding = {
       time: "3 jam lalu",
     },
   ],
-  navLinks: [
-    { href: "#mempelai", label: "Mempelai" },
-    { href: "#savethedate", label: "Waktu" },
-    { href: "#acara", label: "Acara" },
-    { href: "#galeri", label: "Galeri" },
-    { href: "#hadiah", label: "Tanda Kasih" },
-    { href: "#rsvp", label: "RSVP" },
-  ],
+  navLinks: canonicalWedding.navLinks,
 };
 
 export function buildCalendarUrl(): string {

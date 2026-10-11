@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { wedding } from "@/lib/data";
+import { wedding } from "@/data/wedding";
 import { asset } from "@/lib/asset";
 
 /**
@@ -27,7 +27,8 @@ let sharedSource: MediaElementAudioSourceNode | null = null;
 
 function getSharedAudio(): HTMLAudioElement {
   if (!sharedAudio) {
-    sharedAudio = new Audio(asset(wedding.audio));
+    const audioPath = wedding.music?.src || "/audio/baralek-gadang.mp3";
+    sharedAudio = new Audio(asset(audioPath));
     sharedAudio.loop = true;
     sharedAudio.preload = "auto";
     sharedAudio.setAttribute("playsinline", "");

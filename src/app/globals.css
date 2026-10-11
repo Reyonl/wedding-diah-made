@@ -1,168 +1,154 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────
-   The Wedding of Diah & Made — Royal Balinese × Minangkabau
-   Design System (Tailwind v4 CSS-first theme)
+   The Wedding of Diah & Made — Balinese × Minangkabau
+   Studio-Grade Editorial Design System
    ───────────────────────────────────────────────────────────── */
 
 @theme {
-  /* Palette (from original static site) */
-  --color-night: #0f0a08;
-  --color-surface: #18110e;
-  --color-maroon: #5a0f14;
-  --color-crimson: #b3141f;
-  --color-gold: #d4a53a;
-  --color-goldlight: #f2c94c;
-  --color-ivory: #fff4dc;
-  --color-charcoal: #231815;
+  /* Editorial Palette */
+  --color-night: #0F0A08;
+  --color-surface: #18110E;
+  --color-velvet: #5C0E18;
+  --color-velvet-dark: #330810;
+  --color-gold: #D4A53A;
+  --color-gold-light: #F2D27A;
+  --color-gold-deep: #9A6F1E;
+  --color-ivory: #F1E6CE;
+  --color-ink: #1B0F0B;
 
-  /* Editorial wedding fonts */
-  --font-cinzel: "Cinzel Decorative", serif;
-  --font-cormorant: "Cormorant Garamond", serif;
-  --font-vibes: "Great Vibes", cursive;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Poleng sacred tones */
+  --color-poleng-black: #14100E;
+  --color-poleng-grey: #8A8680;
+  --color-poleng-white: #F4F0E6;
+
+  /* Strictly TWO typography families via next/font */
+  --font-cormorant: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-cinzel: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-vibes: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
 
   /* Motion */
   --ease-lux: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-gate: cubic-bezier(0.77, 0, 0.18, 1);
 }
 
-/* Gold gradient text helper */
+/* Custom CSS variables for raw styling */
+:root {
+  --night: #0F0A08;
+  --velvet: #5C0E18;
+  --velvet-dark: #330810;
+  --gold: #D4A53A;
+  --gold-light: #F2D27A;
+  --gold-deep: #9A6F1E;
+  --ivory: #F1E6CE;
+  --ink: #1B0F0B;
+  --navbar-height: 4.5rem;
+}
+
+/* Fix: Section titles jammed under the navbar after clicking a menu link */
+section[id],
+div[id],
+:target {
+  scroll-margin-top: calc(var(--navbar-height) + 1rem);
+}
+
+/* Base typography rules */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-night);
+  color: var(--color-ivory);
+  line-height: 1.7;
+}
+
+/* Studio heading scales */
+.display-names {
+  font-family: var(--font-cormorant);
+  font-size: clamp(3rem, 9vw, 8.5rem);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.heading-section {
+  font-family: var(--font-cormorant);
+  font-size: clamp(2rem, 4.5vw, 3.5rem);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.body-editorial {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  max-width: 65ch;
+}
+
+/* Gold text styling: sophisticated, warm, non-glowing */
+.gold-text {
+  color: var(--color-gold);
+}
+
 .gold-gradient-text {
-  background: linear-gradient(135deg, #fbf0b9 0%, #d4a53a 50%, #aa771c 100%);
+  background: linear-gradient(135deg, #FBF0B9 0%, #D4A53A 50%, #9A6F1E 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.gold-gradient-bg {
-  background: linear-gradient(135deg, #f2c94c 0%, #d4a53a 50%, #b8861b 100%);
-}
-.gold-box-shadow {
-  box-shadow:
-    0 10px 30px -10px rgba(212, 165, 58, 0.25),
-    0 0 1px 1px rgba(242, 201, 76, 0.2);
-}
-.gold-glow {
-  box-shadow: 0 0 25px rgba(212, 165, 58, 0.4);
+
+/* Subtle box shadow - dignified, non-neon */
+.studio-box-shadow {
+  box-shadow: 0 12px 32px -12px rgba(15, 10, 8, 0.6), 0 0 0 1px rgba(212, 165, 58, 0.18);
 }
 
-/* Prada-dotted surface (save-the-date background) */
-.bg-prada {
-  background-color: #0f0a08;
-  background-image:
-    radial-gradient(rgba(212, 165, 58, 0.12) 1.5px, transparent 1.5px),
-    radial-gradient(rgba(242, 201, 76, 0.08) 1.5px, #0f0a08 1.5px);
-  background-size: 32px 32px;
-  background-position:
-    0 0,
-    16px 16px;
+/* Smooth focus rings for AA accessibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 3px;
 }
 
-/* Songket woven accent strip */
-.songket-border {
-  background: repeating-linear-gradient(
-    90deg,
-    #b3141f 0px,
-    #b3141f 12px,
-    #d4a53a 12px,
-    #d4a53a 18px,
-    #5a0f14 18px,
-    #5a0f14 26px,
-    #f2c94c 26px,
-    #f2c94c 32px
-  );
-}
-
-/* Falling petals */
-@keyframes petal-fall {
-  0% {
-    transform: translateY(-5vh) rotate(0deg) translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.85;
-  }
-  90% {
-    opacity: 0.85;
-  }
-  100% {
-    transform: translateY(105vh) rotate(360deg) translateX(60px);
-    opacity: 0;
-  }
-}
-.animate-petal {
-  animation: petal-fall linear infinite;
-}
-
-/* Vinyl spin */
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.animate-spin-slow {
-  animation: spin-slow 9s linear infinite;
-  animation-play-state: paused;
-}
-.animate-spin-slow.spinning {
-  animation-play-state: running;
-}
-
-/* Equalizer bars */
-@keyframes eq-bounce {
-  0%,
-  100% {
-    transform: scaleY(0.3);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
-.eq-bar {
-  transform-origin: bottom;
-  animation: eq-bounce 1s ease-in-out infinite;
-}
-
-/* Lenis smooth scroll */
+/* Lenis smooth scrolling integration */
 html.lenis,
 html.lenis body {
   height: auto;
 }
+
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
+
 .lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
 }
+
 .lenis.lenis-stopped {
   overflow: hidden;
 }
 
-/* Custom scrollbar */
+/* Custom minimal scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #18110e;
+  background: var(--color-night);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #d4a53a;
+  background: var(--color-gold-deep);
   border-radius: 9999px;
 }
 
-/* Native scrollbar for the whole page (dark luxury) */
+/* Global scrollbar */
 html {
-  scrollbar-color: #d4a53a #18110e;
+  scrollbar-color: var(--color-gold-deep) var(--color-night);
   scrollbar-width: thin;
 }
-::selection {
-  background: #d4a53a;
-  color: #0f0a08;
-}
 
-/* Respect reduced motion */
+/* Accessibility: Full respect for prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
