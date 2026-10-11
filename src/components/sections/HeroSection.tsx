@@ -84,7 +84,7 @@ export function HeroSection({ guestName, onOpened }: HeroSectionProps) {
               <motion.img
                 src={asset(wedding.photos.cover)}
                 alt="Diah Insani & I Made Ariana Putra"
-                className="w-full h-full object-cover object-center filter brightness-95"
+                className="w-full h-full object-cover object-[center_35%] filter brightness-95"
                 initial={{ scale: 1.15 }}
                 animate={{
                   scale: opening ? 1 : 1.15,
@@ -106,38 +106,49 @@ export function HeroSection({ guestName, onOpened }: HeroSectionProps) {
             {/* Balinese Candi Bentar Gate */}
             <CandiBentarGate opened={opening} />
 
-            {/* Centered Gap Content (never touching the gate) */}
-            <div className="relative z-30 w-full max-w-[280px] sm:max-w-md md:max-w-lg lg:max-w-xl px-4 text-center flex flex-col items-center">
+            {/* Centered Gap Content (never touching the gate, never covering the faces) */}
+            <div className="relative z-30 w-full h-full max-w-xl sm:max-w-2xl px-6 py-8 sm:py-10 md:py-12 flex flex-col justify-between items-center text-center pointer-events-none">
+              {/* TOP: The Wedding of Diah & Made + Date */}
+              <motion.div
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: buttonFaded ? 0 : 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex flex-col items-center w-full pt-2 sm:pt-4"
+              >
+                <p className="font-cormorant text-ivory/85 text-xs sm:text-sm md:text-base tracking-[0.25em] uppercase mb-1 drop-shadow-md">
+                  The Wedding of
+                </p>
+
+                {/* Couple Names */}
+                <h1 className="font-cormorant text-4xl sm:text-5xl md:text-6xl font-semibold text-ivory tracking-tight mb-1 sm:mb-2 drop-shadow-lg">
+                  <span>Diah</span>{" "}
+                  <span className="font-cormorant italic font-normal text-gold px-1">
+                    &amp;
+                  </span>{" "}
+                  <span>Made</span>
+                </h1>
+
+                {/* Plain date line (no pill) */}
+                <p className="font-sans text-xs sm:text-sm text-ivory/90 font-normal tracking-wide drop-shadow-md">
+                  {wedding.date.fullDate}
+                </p>
+              </motion.div>
+
+              {/* MIDDLE SPACER: Keeps couple's faces and expressions completely clear */}
+              <div className="flex-1 w-full min-h-[120px] sm:min-h-[160px]" aria-hidden="true" />
+
+              {/* BOTTOM: Clean guest salutation & Buka Undangan button */}
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: buttonFaded ? 0 : 1, y: 0 }}
                 transition={{ duration: 0.25 }}
-                className="flex flex-col items-center w-full"
+                className="flex flex-col items-center w-full max-w-sm pb-2 sm:pb-4 pointer-events-auto"
               >
-                <p className="font-cormorant text-ivory/80 text-sm md:text-base tracking-widest uppercase mb-2">
-                  The Wedding of
-                </p>
-
-                {/* Couple Names: Stacked on mobile (Diah / & / Made), inline on desktop */}
-                <h1 className="font-cormorant text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold text-ivory tracking-tight mb-3">
-                  <span className="block sm:inline">Diah</span>{" "}
-                  <span className="font-cormorant italic font-normal text-gold px-1">
-                    &amp;
-                  </span>{" "}
-                  <span className="block sm:inline">Made</span>
-                </h1>
-
-                {/* Plain date line (no pill) */}
-                <p className="font-sans text-xs sm:text-sm text-ivory/85 mb-6 sm:mb-8 font-normal tracking-wide">
-                  {wedding.date.fullDate}
-                </p>
-
-                {/* Clean guest salutation — no box, no diamond ornament */}
-                <div className="mb-8 w-full max-w-sm">
-                  <p className="text-xs text-ivory/65 font-sans mb-1.5">
+                <div className="mb-5 sm:mb-6 w-full text-center">
+                  <p className="text-xs text-ivory/70 font-sans mb-1 tracking-wide drop-shadow-md">
                     Kepada Yth.
                   </p>
-                  <p className="font-cormorant text-2xl sm:text-3xl text-gold-light font-semibold leading-snug break-words">
+                  <p className="font-cormorant text-2xl sm:text-3xl text-gold-light font-semibold leading-snug break-words drop-shadow-lg">
                     {guestName}
                   </p>
                 </div>
@@ -146,7 +157,7 @@ export function HeroSection({ guestName, onOpened }: HeroSectionProps) {
                 <button
                   onClick={handleOpen}
                   disabled={opening}
-                  className="px-8 py-3.5 rounded-full bg-gold hover:bg-gold-light text-night font-sans font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-lg cursor-pointer focus-visible:ring-2 focus-visible:ring-gold-light"
+                  className="px-8 sm:px-10 py-3.5 rounded-full bg-gold hover:bg-gold-light text-night font-sans font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-xl cursor-pointer focus-visible:ring-2 focus-visible:ring-gold-light"
                 >
                   Buka Undangan
                 </button>
@@ -169,7 +180,7 @@ export function HeroSection({ guestName, onOpened }: HeroSectionProps) {
           <img
             src={asset(wedding.photos.cover)}
             alt="Pernikahan Diah Insani & I Made Ariana Putra"
-            className="w-full h-full object-cover object-top filter brightness-95"
+            className="w-full h-full object-cover object-[center_35%] filter brightness-95"
           />
           {/* Subtle vignette and bottom gradient only */}
           <div className="absolute inset-0 bg-gradient-to-t from-night via-night/50 to-transparent" />

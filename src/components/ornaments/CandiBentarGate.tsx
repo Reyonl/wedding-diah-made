@@ -24,12 +24,12 @@ export function CandiBentarGate({ opened }: GateProps) {
     <div className="absolute inset-0 pointer-events-none z-20 flex justify-between overflow-hidden">
       {/* Left Leaf */}
       <motion.div
-        className="h-full w-[30vw] md:w-[38vw] relative"
+        className="h-full w-[16vw] sm:w-[18vw] md:w-[22vw] relative"
         initial={{ x: 0, opacity: 1 }}
         animate={
           prefersReduced
             ? { opacity: opened ? 0 : 1 }
-            : { x: opened ? "-102%" : "0%" }
+            : { x: opened ? "-105%" : "0%" }
         }
         transition={transition}
       >
@@ -38,12 +38,12 @@ export function CandiBentarGate({ opened }: GateProps) {
 
       {/* Right Leaf */}
       <motion.div
-        className="h-full w-[30vw] md:w-[38vw] relative"
+        className="h-full w-[16vw] sm:w-[18vw] md:w-[22vw] relative"
         initial={{ x: 0, opacity: 1 }}
         animate={
           prefersReduced
             ? { opacity: opened ? 0 : 1 }
-            : { x: opened ? "102%" : "0%" }
+            : { x: opened ? "105%" : "0%" }
         }
         transition={transition}
       >
