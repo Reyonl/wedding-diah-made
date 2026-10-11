@@ -82,7 +82,7 @@ export function Navbar({ visible }: { visible: boolean }) {
                   key={item.href}
                   onClick={() => handleNav(item.href)}
                   className={`cursor-pointer transition-colors hover:text-gold ${
-                    item.href === "#rsvp"
+                    item.href === "#ucapan" || item.href === "#rsvp"
                       ? "px-5 py-2 rounded-full border border-gold text-gold hover:bg-gold hover:text-night transition-all font-semibold"
                       : "py-1.5 border-b border-transparent hover:border-gold/60"
                   }`}
@@ -121,7 +121,7 @@ export function Navbar({ visible }: { visible: boolean }) {
                       key={item.href}
                       onClick={() => handleNav(item.href)}
                       className={`text-left py-3 text-sm font-sans transition-colors cursor-pointer border-b border-gold/10 last:border-0 ${
-                        item.href === "#rsvp"
+                        item.href === "#ucapan" || item.href === "#rsvp"
                           ? "text-gold font-semibold"
                           : "text-ivory/90 hover:text-gold"
                       }`}

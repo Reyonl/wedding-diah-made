@@ -196,7 +196,7 @@ export const wedding: WeddingData = {
     { href: "#acara", label: "Acara" },
     { href: "#galeri", label: "Galeri" },
     { href: "#hadiah", label: "Tanda Kasih" },
-    { href: "#rsvp", label: "RSVP" },
+    { href: "#ucapan", label: "Ucapan" },
   ],
 };
 
@@ -212,16 +212,12 @@ export function formatCountdownParts(msLeft: number) {
 
 export function buildWhatsAppUrl(input: {
   name: string;
-  status: string;
-  pax: string;
   message: string;
 }): string {
   const text =
     `Halo Diah & Made!%0A%0A` +
-    `Saya *${encodeURIComponent(input.name)}* mengonfirmasi kehadiran untuk acara pernikahan kalian:%0A` +
-    `• Kehadiran: *${encodeURIComponent(input.status)}*%0A` +
-    `• Jumlah: *${encodeURIComponent(input.pax)}*%0A` +
-    `• Doa & Ucapan: "${encodeURIComponent(input.message || "-")}"%0A%0A` +
+    `Saya *${encodeURIComponent(input.name)}* ingin menyampaikan kesan, pesan, dan ucapan selamat:%0A` +
+    `"${encodeURIComponent(input.message || "-")}"%0A%0A` +
     `Selamat berbahagia! ${wedding.hashtag}`;
   return `https://api.whatsapp.com/send?text=${text}`;
 }

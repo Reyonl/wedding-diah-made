@@ -7,35 +7,35 @@ import { wedding, buildWhatsAppUrl } from "@/data/wedding";
 interface Wish {
   id: string;
   name: string;
-  status: string;
-  pax: string;
   message: string;
   time: string;
 }
+
+const STORAGE_KEY = "wedding_diah_made_wishes_v2";
 
 const SEED_WISHES: Wish[] = [
   {
     id: "seed-1",
     name: "Keluarga Besar Datuk Bandaro",
-    status: "Hadir",
-    pax: "3",
     message: "Barekek balimau, basatu duo pusako adaik nan mulia. Samawa untuak ananda Diah dan Made, rukun dan berkah sampai anak cucu.",
     time: "Baru saja",
   },
   {
     id: "seed-2",
     name: "Prof. Wayan Sudarta & Keluarga",
-    status: "Hadir",
-    pax: "2",
     message: "Selamat menempuh hidup baru Made dan Diah. Dumogi langgeng riwekasan, sakinah mawaddah warahmah dalam lindungan Sang Hyang Widhi Wasa.",
     time: "1 jam lalu",
+  },
+  {
+    id: "seed-3",
+    name: "Rizky Pratama & Amanda",
+    message: "Selamat berbahagia Diah & Made! Senang sekali melihat dua insan dan dua budaya yang begitu indah bersatu. Semoga selalu diliputi cinta dan kedamaian.",
+    time: "3 jam lalu",
   },
 ];
 
 export function RsvpSection() {
   const [name, setName] = useState("");
-  const [status, setStatus] = useState("Hadir");
-  const [pax, setPax] = useState("1");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
 
@@ -46,8 +46,22 @@ export function RsvpSection() {
 
   const lastSubmitRef = useRef<number>(0);
 
-  // Fetch wishes from Google Apps Script endpoint if configured
+  // Initialize from localStorage and remote endpoint
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed: Wish[] = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Merge unique wishes
+          const merged = [...parsed, ...SEED_WISHES.filter((s) => !parsed.some((p) => p.id === s.id))];
+          setWishes(merged);
+        }
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+
     if (!wedding.rsvpEndpoint) return;
     const fetchWishes = async () => {
       try {
@@ -59,7 +73,7 @@ export function RsvpSection() {
           }
         }
       } catch {
-        // Fallback to initial seed wishes
+        // Fallback to local wishes
       }
     };
     fetchWishes();
@@ -87,64 +101,60 @@ export function RsvpSection() {
       return;
     }
 
+    if (!message.trim()) {
+      setErrorMessage("Silakan tuliskan kesan, pesan, atau ucapan selamat Anda.");
+      return;
+    }
+
     setLoading(true);
 
     const newWish: Wish = {
       id: String(Date.now()),
       name: name.trim().slice(0, 40),
-      status,
-      pax,
-      message: message.trim().slice(0, 300),
+      message: message.trim().slice(0, 400),
       time: "Baru saja",
     };
 
-    // 3. If no rsvpEndpoint is configured, fall back to WhatsApp URL
-    if (!wedding.rsvpEndpoint) {
-      setLoading(false);
-      setSubmitted(true);
-      setWishes((prev) => [newWish, ...prev]);
-
-      // Open WhatsApp with prefilled message
-      const waUrl = buildWhatsAppUrl({
-        name: newWish.name,
-        status: newWish.status,
-        pax: `${newWish.pax} Orang`,
-        message: newWish.message,
-      });
-      window.open(waUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    // 4. Submit via POST to Google Apps Script endpoint
+    // Update state and localStorage
+    const updated = [newWish, ...wishes.filter((w) => w.id !== newWish.id)];
+    setWishes(updated);
     try {
-      const res = await fetch(wedding.rsvpEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newWish),
-        mode: "no-cors", // Google Apps Script Web App standard redirection
-      });
-      void res;
-      setSubmitted(true);
-      setWishes((prev) => [newWish, ...prev]);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch {
-      // Fallback
-      setSubmitted(true);
-      setWishes((prev) => [newWish, ...prev]);
-    } finally {
-      setLoading(false);
+      // Ignore storage errors
     }
+
+    // If endpoint configured, submit via POST
+    if (wedding.rsvpEndpoint) {
+      try {
+        await fetch(wedding.rsvpEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newWish),
+          mode: "no-cors",
+        });
+      } catch {
+        // Handled gracefully
+      }
+    }
+
+    setLoading(false);
+    setSubmitted(true);
   };
 
   return (
-    <section id="rsvp" className="py-24 px-6 relative bg-night border-t border-gold/15">
+    <section id="ucapan" className="py-24 px-6 relative bg-night border-t border-gold/15 scroll-mt-20">
+      {/* Hidden anchor for backward-compatibility with #rsvp links */}
+      <div id="rsvp" className="absolute -top-24 pointer-events-none" aria-hidden="true" />
+
       <div className="max-w-4xl mx-auto">
         {/* Section Heading */}
         <div className="text-center mb-14">
           <h2 className="heading-section text-ivory mb-3">
-            Konfirmasi Kehadiran
+            Kesan, Pesan &amp; Doa Restu
           </h2>
           <p className="font-sans text-sm text-ivory/70 max-w-md mx-auto">
-            Kehadiran dan doa restu Anda merupakan kehormatan terbesar bagi kami
+            Tuliskan kesan, pesan bahagia, dan ucapan selamat untuk Diah &amp; Made
           </p>
         </div>
 
@@ -154,21 +164,31 @@ export function RsvpSection() {
             <div className="text-center py-8">
               <CheckCircle2 className="w-12 h-12 text-gold mx-auto mb-4" />
               <h3 className="font-cormorant text-2xl font-semibold text-ivory mb-2">
-                Terima Kasih atas Konfirmasi Anda
+                Terima Kasih atas Doa &amp; Ucapan Anda
               </h3>
               <p className="font-sans text-sm text-ivory/70 mb-6">
-                Doa dan konfirmasi kehadiran Anda telah tercatat dengan baik.
+                Pesan dan doa restu Anda telah tersampaikan dan sangat berarti bagi kami berdua.
               </p>
-              <button
-                onClick={() => {
-                  setSubmitted(false);
-                  setName("");
-                  setMessage("");
-                }}
-                className="text-xs font-sans text-gold underline underline-offset-4 cursor-pointer"
-              >
-                Kirim ucapan lainnya
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button
+                  onClick={() => {
+                    setSubmitted(false);
+                    setMessage("");
+                  }}
+                  className="px-6 py-2.5 rounded-full border border-gold/60 text-gold hover:bg-gold/10 text-xs font-sans tracking-wide uppercase transition-colors cursor-pointer"
+                >
+                  Tulis ucapan lainnya
+                </button>
+                <a
+                  href={buildWhatsAppUrl({ name, message })}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-2.5 rounded-full bg-gold hover:bg-gold-light text-night text-xs font-sans font-semibold tracking-wide uppercase transition-colors cursor-pointer inline-flex items-center gap-2"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  Kirim ke WhatsApp
+                </a>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -187,69 +207,34 @@ export function RsvpSection() {
               {/* Field: Nama */}
               <div>
                 <label className="block text-xs font-sans uppercase tracking-wider text-ivory/80 mb-2">
-                  Nama Lengkap *
+                  Nama Anda *
                 </label>
                 <input
                   type="text"
                   required
                   maxLength={40}
-                  placeholder="Contoh: Bpk. Budi Santoso"
+                  placeholder="Contoh: Budi Santoso & Keluarga"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-night border border-gold/40 text-ivory placeholder-ivory/30 text-sm font-sans focus-visible:border-gold focus-visible:outline-none"
                 />
               </div>
 
-              {/* Field: Kehadiran */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-sans uppercase tracking-wider text-ivory/80 mb-2">
-                    Kehadiran
-                  </label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-night border border-gold/40 text-ivory text-sm font-sans focus-visible:border-gold focus-visible:outline-none cursor-pointer"
-                  >
-                    <option value="Hadir">Hadir</option>
-                    <option value="Tidak Hadir">Tidak Hadir</option>
-                  </select>
-                </div>
-
-                {/* Field: Jumlah Tamu (1-5) */}
-                <div>
-                  <label className="block text-xs font-sans uppercase tracking-wider text-ivory/80 mb-2">
-                    Jumlah Tamu
-                  </label>
-                  <select
-                    value={pax}
-                    onChange={(e) => setPax(e.target.value)}
-                    disabled={status === "Tidak Hadir"}
-                    className="w-full px-4 py-3 rounded-xl bg-night border border-gold/40 text-ivory text-sm font-sans focus-visible:border-gold focus-visible:outline-none disabled:opacity-40 cursor-pointer"
-                  >
-                    <option value="1">1 Orang</option>
-                    <option value="2">2 Orang</option>
-                    <option value="3">3 Orang</option>
-                    <option value="4">4 Orang</option>
-                    <option value="5">5 Orang</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Field: Ucapan (max 300 chars with counter) */}
+              {/* Field: Kesan, Pesan & Ucapan */}
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-xs font-sans uppercase tracking-wider text-ivory/80">
-                    Doa &amp; Ucapan
+                    Kesan, Pesan &amp; Ucapan Selamat *
                   </label>
                   <span className="text-[11px] font-sans text-ivory/50">
-                    {message.length} / 300
+                    {message.length} / 400
                   </span>
                 </div>
                 <textarea
-                  rows={3}
-                  maxLength={300}
-                  placeholder="Tuliskan doa restu untuk kedua mempelai..."
+                  rows={4}
+                  required
+                  maxLength={400}
+                  placeholder="Tuliskan kesan, pesan, atau ucapan selamat dan doa restu..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-night border border-gold/40 text-ivory placeholder-ivory/30 text-sm font-sans focus-visible:border-gold focus-visible:outline-none resize-none"
@@ -267,24 +252,24 @@ export function RsvpSection() {
                 className="w-full py-3.5 rounded-full bg-gold hover:bg-gold-light text-night font-sans font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-md cursor-pointer inline-flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Send className="w-4 h-4 text-night" />
-                <span>{loading ? "Mengirim..." : "Kirim Konfirmasi"}</span>
+                <span>{loading ? "Mengirim..." : "Kirim Ucapan"}</span>
               </button>
             </form>
           )}
         </div>
 
-        {/* Wishes List (Rendered as clean plain text) */}
+        {/* Untaian Doa & Pesan List */}
         <div className="max-w-2xl mx-auto">
           <h3 className="font-cormorant text-2xl font-semibold text-ivory text-center mb-8">
-            Untaian Doa &amp; Harapan
+            Untaian Doa &amp; Pesan Hangat
           </h3>
 
           {wishes.length === 0 ? (
             <p className="text-center text-sm font-sans text-ivory/50 py-8">
-              Belum ada ucapan. Jadilah yang pertama.
+              Belum ada ucapan. Jadilah yang pertama menyampaikan doa restu.
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[560px] overflow-y-auto pr-1">
               {wishes.map((w) => (
                 <div
                   key={w.id}
@@ -295,11 +280,11 @@ export function RsvpSection() {
                       {w.name}
                     </span>
                     <span className="text-[11px] font-sans text-ivory/45">
-                      {w.status === "Hadir" ? "Hadir" : "Berhalangan"}
+                      {w.time}
                     </span>
                   </div>
-                  <p className="font-sans text-xs sm:text-sm text-ivory/80 leading-relaxed">
-                    {w.message || "—"}
+                  <p className="font-sans text-xs sm:text-sm text-ivory/85 leading-relaxed whitespace-pre-wrap">
+                    {w.message}
                   </p>
                 </div>
               ))}
