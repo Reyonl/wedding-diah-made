@@ -209,3 +209,19 @@ export function formatCountdownParts(msLeft: number) {
     seconds: String(s % 60).padStart(2, "0"),
   };
 }
+
+export function buildWhatsAppUrl(input: {
+  name: string;
+  status: string;
+  pax: string;
+  message: string;
+}): string {
+  const text =
+    `Halo Diah & Made!%0A%0A` +
+    `Saya *${encodeURIComponent(input.name)}* mengonfirmasi kehadiran untuk acara pernikahan kalian:%0A` +
+    `• Kehadiran: *${encodeURIComponent(input.status)}*%0A` +
+    `• Jumlah: *${encodeURIComponent(input.pax)}*%0A` +
+    `• Doa & Ucapan: "${encodeURIComponent(input.message || "-")}"%0A%0A` +
+    `Selamat berbahagia! ${wedding.hashtag}`;
+  return `https://api.whatsapp.com/send?text=${text}`;
+}

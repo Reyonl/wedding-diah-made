@@ -1,282 +1,310 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { MessageCircle, Send, Heart } from "lucide-react";
-import { wedding, buildWhatsAppUrl } from "@/lib/data";
-import { useToast } from "@/components/providers/ToastProvider";
-import { Reveal, SectionHeading } from "@/components/ui/Reveal";
+import { useEffect, useState, useRef } from "react";
+import { Send, CheckCircle2 } from "lucide-react";
+import { wedding, buildWhatsAppUrl } from "@/data/wedding";
 
-const STORAGE_KEY = "diah_made_wedding_wishes";
-
-type Wish = {
+interface Wish {
   id: string;
   name: string;
   status: string;
   pax: string;
   message: string;
   time: string;
-};
-
-type FormState = {
-  name: string;
-  status: string;
-  pax: string;
-  message: string;
-};
-
-const emptyForm: FormState = { name: "", status: "Hadir", pax: "1 Orang", message: "" };
-
-function loadWishes(): Wish[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Wish[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
 }
 
-export function RsvpSection() {
-  const { showToast } = useToast();
-  const [form, setForm] = useState<FormState>(emptyForm);
-  const [errors, setErrors] = useState<Partial<FormState>>({});
-  const [submitted, setSubmitted] = useState(false);
-  const [sentViaWa, setSentViaWa] = useState(false);
-  const [wishes, setWishes] = useState<Wish[]>([]);
+const SEED_WISHES: Wish[] = [
+  {
+    id: "seed-1",
+    name: "Keluarga Besar Datuk Bandaro",
+    status: "Hadir",
+    pax: "3",
+    message: "Barekek balimau, basatu duo pusako adaik nan mulia. Samawa untuak ananda Diah dan Made, rukun dan berkah sampai anak cucu.",
+    time: "Baru saja",
+  },
+  {
+    id: "seed-2",
+    name: "Prof. Wayan Sudarta & Keluarga",
+    status: "Hadir",
+    pax: "2",
+    message: "Selamat menempuh hidup baru Made dan Diah. Dumogi langgeng riwekasan, sakinah mawaddah warahmah dalam lindungan Sang Hyang Widhi Wasa.",
+    time: "1 jam lalu",
+  },
+];
 
+export function RsvpSection() {
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState("Hadir");
+  const [pax, setPax] = useState("1");
+  const [message, setMessage] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [wishes, setWishes] = useState<Wish[]>(SEED_WISHES);
+
+  const lastSubmitRef = useRef<number>(0);
+
+  // Fetch wishes from Google Apps Script endpoint if configured
   useEffect(() => {
-    setWishes(loadWishes());
+    if (!wedding.rsvpEndpoint) return;
+    const fetchWishes = async () => {
+      try {
+        const res = await fetch(wedding.rsvpEndpoint, { method: "GET" });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setWishes(data);
+          }
+        }
+      } catch {
+        // Fallback to initial seed wishes
+      }
+    };
+    fetchWishes();
   }, []);
 
-  const allWishes = useMemo(
-    () => [
-      ...wedding.seedWishes.map((w, i) => ({ ...w, id: `seed-${i}` })),
-      ...wishes,
-    ],
-    [wishes]
-  );
-
-  const update = (key: keyof FormState, value: string) => {
-    setForm((f) => ({ ...f, [key]: value }));
-    setErrors((e) => ({ ...e, [key]: undefined }));
-  };
-
-  const validate = (): boolean => {
-    const next: Partial<FormState> = {};
-    if (!form.name.trim()) next.name = "Mohon tuliskan nama Anda.";
-    if (!form.message.trim()) next.message = "Tuliskan ucapan & doa restu Anda.";
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    setErrorMessage("");
+
+    // 1. Honeypot check (anti-bot)
+    if (honeypot) {
+      return;
+    }
+
+    // 2. Client-side throttle (5 seconds limit between submits)
+    const now = Date.now();
+    if (now - lastSubmitRef.current < 5000) {
+      setErrorMessage("Mohon tunggu beberapa detik sebelum mengirim kembali.");
+      return;
+    }
+    lastSubmitRef.current = now;
+
+    if (!name.trim()) {
+      setErrorMessage("Silakan masukkan nama Anda.");
+      return;
+    }
+
+    setLoading(true);
 
     const newWish: Wish = {
-      id: `${Date.now()}`,
-      name: form.name.trim(),
-      status: form.status,
-      pax: form.pax,
-      message: form.message.trim(),
+      id: String(Date.now()),
+      name: name.trim().slice(0, 40),
+      status,
+      pax,
+      message: message.trim().slice(0, 300),
       time: "Baru saja",
     };
 
-    const next = [newWish, ...loadWishes()];
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      /* penyimpanan penuh / private mode — tetap tampil di sesi */
-    }
-    setWishes(next);
-    setForm(emptyForm);
-    setSubmitted(true);
-    showToast("Terima kasih! Doa restu Anda tersimpan.");
-    setTimeout(() => setSubmitted(false), 3500);
-  };
+    // 3. If no rsvpEndpoint is configured, fall back to WhatsApp URL
+    if (!wedding.rsvpEndpoint) {
+      setLoading(false);
+      setSubmitted(true);
+      setWishes((prev) => [newWish, ...prev]);
 
-  const handleWhatsApp = () => {
-    if (!form.name.trim()) {
-      setErrors((e) => ({ ...e, name: "Mohon isi nama Anda dahulu." }));
-      showToast("Mohon isi nama terlebih dahulu");
+      // Open WhatsApp with prefilled message
+      const waUrl = buildWhatsAppUrl({
+        name: newWish.name,
+        status: newWish.status,
+        pax: `${newWish.pax} Orang`,
+        message: newWish.message,
+      });
+      window.open(waUrl, "_blank", "noopener,noreferrer");
       return;
     }
-    setSentViaWa(true);
-    window.open(
-      buildWhatsAppUrl({ ...form, name: form.name.trim(), message: form.message.trim() }),
-      "_blank"
-    );
-    setTimeout(() => setSentViaWa(false), 2500);
+
+    // 4. Submit via POST to Google Apps Script endpoint
+    try {
+      const res = await fetch(wedding.rsvpEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newWish),
+        mode: "no-cors", // Google Apps Script Web App standard redirection
+      });
+      void res;
+      setSubmitted(true);
+      setWishes((prev) => [newWish, ...prev]);
+    } catch {
+      // Fallback
+      setSubmitted(true);
+      setWishes((prev) => [newWish, ...prev]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const inputClass = (err?: string) =>
-    `w-full px-4 py-3 rounded-xl bg-surface border text-sm transition-colors focus:outline-none ${
-      err
-        ? "border-red-400/80 focus:border-red-400"
-        : "border-gold/40 text-ivory focus:border-gold"
-    }`;
-
   return (
-    <section id="rsvp" className="py-24 px-6 relative bg-surface border-t border-gold/20">
-      <div className="max-w-6xl mx-auto">
-        <SectionHeading
-          eyebrow="Konfirmasi Kehadiran"
-          title="RSVP & Doa Restu"
-          subtitle="Mohon konfirmasikan kehadiran serta titipkan doa terbaik Anda"
-        />
+    <section id="rsvp" className="py-24 px-6 relative bg-night border-t border-gold/15">
+      <div className="max-w-4xl mx-auto">
+        {/* Section Heading */}
+        <div className="text-center mb-14">
+          <h2 className="heading-section text-ivory mb-3">
+            Konfirmasi Kehadiran
+          </h2>
+          <p className="font-sans text-sm text-ivory/70 max-w-md mx-auto">
+            Kehadiran dan doa restu Anda merupakan kehormatan terbesar bagi kami
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Form */}
-          <Reveal className="lg:col-span-7">
-            <div className="p-8 rounded-3xl bg-night/90 border border-gold/40 relative backdrop-blur-md gold-box-shadow">
-              <h3 className="font-cinzel text-xl font-bold text-gold mb-6">
-                Konfirmasi Kehadiran
+        {/* Form Container */}
+        <div className="max-w-xl mx-auto p-8 rounded-2xl border border-gold/30 bg-surface/80 shadow-xl mb-16">
+          {submitted ? (
+            <div className="text-center py-8">
+              <CheckCircle2 className="w-12 h-12 text-gold mx-auto mb-4" />
+              <h3 className="font-cormorant text-2xl font-semibold text-ivory mb-2">
+                Terima Kasih atas Konfirmasi Anda
               </h3>
-
-              <form onSubmit={handleSubmit} className="space-y-5 text-left" noValidate>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-ivory/80 font-semibold mb-2">
-                    Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => update("name", e.target.value)}
-                    placeholder="Contoh: Bpk. Bambang & Ibu"
-                    className={inputClass(errors.name)}
-                  />
-                  {errors.name ? (
-                    <p className="mt-1.5 text-xs text-red-400">{errors.name}</p>
-                  ) : null}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-ivory/80 font-semibold mb-2">
-                      Konfirmasi Kehadiran
-                    </label>
-                    <select
-                      value={form.status}
-                      onChange={(e) => update("status", e.target.value)}
-                      className={inputClass()}
-                    >
-                      <option value="Hadir">Hadir</option>
-                      <option value="Tidak Hadir">Tidak Hadir (Berhalangan)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-ivory/80 font-semibold mb-2">
-                      Jumlah Tamu
-                    </label>
-                    <select
-                      value={form.pax}
-                      onChange={(e) => update("pax", e.target.value)}
-                      className={inputClass()}
-                    >
-                      <option value="1 Orang">1 Orang</option>
-                      <option value="2 Orang">2 Orang</option>
-                      <option value="3 Orang">3 Orang</option>
-                      <option value="4 Orang">4 Orang</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-ivory/80 font-semibold mb-2">
-                    Ucapan &amp; Doa Restu
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={form.message}
-                    onChange={(e) => update("message", e.target.value)}
-                    placeholder="Tuliskan untaian doa dan ucapan selamat untuk kedua mempelai..."
-                    className={inputClass(errors.message)}
-                  />
-                  {errors.message ? (
-                    <p className="mt-1.5 text-xs text-red-400">{errors.message}</p>
-                  ) : null}
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <button
-                    type="submit"
-                    className="flex-1 py-4 rounded-xl gold-gradient-bg text-night font-bold uppercase tracking-widest text-xs hover:brightness-110 active:scale-95 transition shadow-lg gold-glow inline-flex items-center justify-center gap-2"
-                  >
-                    <Send className="w-4 h-4" />
-                    Kirim Ucapan &amp; Konfirmasi
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleWhatsApp}
-                    className="py-4 px-6 rounded-xl border border-emerald-500 bg-emerald-600/20 hover:bg-emerald-600 hover:text-white text-emerald-400 font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition shadow"
-                  >
-                    {sentViaWa ? <Heart className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
-                    {sentViaWa ? "Membuka WA..." : "Kirim via WA"}
-                  </button>
-                </div>
-
-                <AnimatePresence>
-                  {submitted ? (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <p className="mt-4 px-4 py-3 rounded-xl bg-emerald-600/15 border border-emerald-500/40 text-emerald-300 text-sm flex items-center gap-2">
-                        <Heart className="w-4 h-4 shrink-0" />
-                        Terima kasih! Doa restu dan konfirmasi kehadiran Anda telah tersimpan.
-                      </p>
-                    </motion.div>
-                  ) : null}
-                </AnimatePresence>
-              </form>
+              <p className="font-sans text-sm text-ivory/70 mb-6">
+                Doa dan konfirmasi kehadiran Anda telah tercatat dengan baik.
+              </p>
+              <button
+                onClick={() => {
+                  setSubmitted(false);
+                  setName("");
+                  setMessage("");
+                }}
+                className="text-xs font-sans text-gold underline underline-offset-4 cursor-pointer"
+              >
+                Kirim ucapan lainnya
+              </button>
             </div>
-          </Reveal>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Hidden honeypot field (anti-spam) */}
+              <input
+                type="text"
+                name="website_hp"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden="true"
+              />
 
-          {/* Wish list */}
-          <Reveal delay={0.15} className="lg:col-span-5">
-            <div className="p-8 rounded-3xl bg-night/90 border border-gold/40 relative backdrop-blur-md gold-box-shadow flex flex-col h-[560px]">
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-gold/30">
-                <h3 className="font-cinzel text-lg font-bold text-gold">
-                  Untaian Doa Tamu
-                </h3>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-maroon text-goldlight border border-gold/40">
-                  {allWishes.length} Ucapan
-                </span>
+              {/* Field: Nama */}
+              <div>
+                <label className="block text-xs font-sans uppercase tracking-wider text-ivory/80 mb-2">
+                  Nama Lengkap *
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={40}
+                  placeholder="Contoh: Bpk. Budi Santoso"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-night border border-gold/40 text-ivory placeholder-ivory/30 text-sm font-sans focus-visible:border-gold focus-visible:outline-none"
+                />
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                <AnimatePresence initial={false}>
-                  {allWishes.map((w, i) => (
-                    <motion.div
-                      key={w.id || `seed-${i}`}
-                      layout
-                      initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      className="p-4 rounded-2xl bg-surface/80 border border-gold/25"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-sans font-bold text-xs text-gold">
-                          {w.name}{" "}
-                          <span className="text-[10px] text-ivory/60 font-normal">
-                            ({w.status}
-                            {w.status === "Hadir" ? ` • ${w.pax}` : ""})
-                          </span>
-                        </h4>
-                        <span className="text-[10px] text-ivory/40 shrink-0 ml-2">{w.time}</span>
-                      </div>
-                      <p className="text-xs text-ivory/80 leading-relaxed font-sans">
-                        &ldquo;{w.message}&rdquo;
-                      </p>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+              {/* Field: Kehadiran */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-sans uppercase tracking-wider text-ivory/80 mb-2">
+                    Kehadiran
+                  </label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-night border border-gold/40 text-ivory text-sm font-sans focus-visible:border-gold focus-visible:outline-none cursor-pointer"
+                  >
+                    <option value="Hadir">Hadir</option>
+                    <option value="Tidak Hadir">Tidak Hadir</option>
+                  </select>
+                </div>
+
+                {/* Field: Jumlah Tamu (1-5) */}
+                <div>
+                  <label className="block text-xs font-sans uppercase tracking-wider text-ivory/80 mb-2">
+                    Jumlah Tamu
+                  </label>
+                  <select
+                    value={pax}
+                    onChange={(e) => setPax(e.target.value)}
+                    disabled={status === "Tidak Hadir"}
+                    className="w-full px-4 py-3 rounded-xl bg-night border border-gold/40 text-ivory text-sm font-sans focus-visible:border-gold focus-visible:outline-none disabled:opacity-40 cursor-pointer"
+                  >
+                    <option value="1">1 Orang</option>
+                    <option value="2">2 Orang</option>
+                    <option value="3">3 Orang</option>
+                    <option value="4">4 Orang</option>
+                    <option value="5">5 Orang</option>
+                  </select>
+                </div>
               </div>
+
+              {/* Field: Ucapan (max 300 chars with counter) */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-sans uppercase tracking-wider text-ivory/80">
+                    Doa &amp; Ucapan
+                  </label>
+                  <span className="text-[11px] font-sans text-ivory/50">
+                    {message.length} / 300
+                  </span>
+                </div>
+                <textarea
+                  rows={3}
+                  maxLength={300}
+                  placeholder="Tuliskan doa restu untuk kedua mempelai..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-night border border-gold/40 text-ivory placeholder-ivory/30 text-sm font-sans focus-visible:border-gold focus-visible:outline-none resize-none"
+                />
+              </div>
+
+              {errorMessage ? (
+                <p className="text-xs text-rose-400 font-sans">{errorMessage}</p>
+              ) : null}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-full bg-gold hover:bg-gold-light text-night font-sans font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-md cursor-pointer inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Send className="w-4 h-4 text-night" />
+                <span>{loading ? "Mengirim..." : "Kirim Konfirmasi"}</span>
+              </button>
+            </form>
+          )}
+        </div>
+
+        {/* Wishes List (Rendered as clean plain text) */}
+        <div className="max-w-2xl mx-auto">
+          <h3 className="font-cormorant text-2xl font-semibold text-ivory text-center mb-8">
+            Untaian Doa &amp; Harapan
+          </h3>
+
+          {wishes.length === 0 ? (
+            <p className="text-center text-sm font-sans text-ivory/50 py-8">
+              Belum ada ucapan. Jadilah yang pertama.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {wishes.map((w) => (
+                <div
+                  key={w.id}
+                  className="p-5 rounded-xl border border-gold/20 bg-surface/60"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-cormorant text-lg font-semibold text-gold-light">
+                      {w.name}
+                    </span>
+                    <span className="text-[11px] font-sans text-ivory/45">
+                      {w.status === "Hadir" ? "Hadir" : "Berhalangan"}
+                    </span>
+                  </div>
+                  <p className="font-sans text-xs sm:text-sm text-ivory/80 leading-relaxed">
+                    {w.message || "—"}
+                  </p>
+                </div>
+              ))}
             </div>
-          </Reveal>
+          )}
         </div>
       </div>
     </section>
