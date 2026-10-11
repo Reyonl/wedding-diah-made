@@ -1,126 +1,97 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Clock, MapPin, ExternalLink, Navigation, Gem, PartyPopper } from "lucide-react";
-import { wedding } from "@/lib/data";
-import { Reveal, SectionHeading } from "@/components/ui/Reveal";
+import { MapPin } from "lucide-react";
+import { wedding } from "@/data/wedding";
 
-type EventData = {
-  name: string;
-  dayDate: string;
-  time: string;
-  venue: string;
-  address: string;
-  icon: "ring" | "party";
-};
-
-function EventCard({ event, delay }: { event: EventData; delay: number }) {
-  const Icon = event.icon === "ring" ? Gem : PartyPopper;
-
-  return (
-    <Reveal delay={delay} className="h-full">
-      <motion.div
-        whileHover={{ y: -6 }}
-        transition={{ type: "spring", stiffness: 220, damping: 20 }}
-        className="h-full p-8 rounded-3xl bg-surface/85 border border-gold/40 relative overflow-hidden backdrop-blur-md gold-box-shadow flex flex-col justify-between group hover:border-gold transition duration-300"
-      >
-        <div>
-          <div className="flex items-center justify-end mb-4">
-            <Icon className="w-5 h-5 text-gold/80" />
-          </div>
-
-          <h3 className="font-cinzel text-2xl font-bold text-ivory mb-2">
-            {event.name}
-          </h3>
-          <p className="font-cormorant text-lg text-gold font-semibold mb-6">
-            {event.dayDate}
-          </p>
-
-          <div className="space-y-4 text-xs text-ivory/80 mb-8">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-maroon/60 border border-gold/30 flex items-center justify-center shrink-0 text-gold">
-                <Clock className="w-4 h-4" />
-              </div>
-              <div>
-                <strong className="text-ivory block font-semibold">Pukul:</strong>
-                <span>{event.time}</span>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-maroon/60 border border-gold/30 flex items-center justify-center shrink-0 text-gold">
-                <MapPin className="w-4 h-4" />
-              </div>
-              <div>
-                <strong className="text-ivory block font-semibold">Tempat / Lokasi:</strong>
-                <span>
-                  {event.venue}
-                  <br />
-                  {event.address}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <a
-          href={wedding.mapLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full py-3 rounded-full border border-gold text-gold hover:bg-gold hover:text-night font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-2 transition duration-300"
-        >
-          <ExternalLink className="w-4 h-4" />
-          <span>Buka Google Maps</span>
-        </a>
-      </motion.div>
-    </Reveal>
-  );
-}
-
+/**
+ * Acara Section (Night Background)
+ * ONE location, TWO times.
+ * Left: Clean vertical timeline (Akad Nikah & Pemberkatan 08.00-10.00 WIB, Resepsi 11.00-14.00 WIB).
+ * Right: Venue block (name, address, one "Buka Google Maps" button).
+ * No duplicate cards, no duplicate map buttons, no icon circles.
+ * Date "Sabtu, 28 November 2026" shown once.
+ */
 export function EventSection() {
-  const { akad, resepsi } = wedding.events;
+  const { date, akad, resepsi, venue, maps } = wedding;
 
   return (
-    <section id="acara" className="py-24 px-6 relative bg-night">
-      <div className="max-w-6xl mx-auto">
-        <SectionHeading
-          eyebrow="Rangkaian Acara"
-          title="Waktu & Tempat Acara"
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 items-stretch">
-          <EventCard event={akad} delay={0.1} />
-          <EventCard event={resepsi} delay={0.2} />
+    <section id="acara" className="py-24 px-6 relative bg-night border-t border-gold/15">
+      <div className="max-w-5xl mx-auto">
+        {/* Section Heading & Single Date */}
+        <div className="text-center mb-16 md:mb-20">
+          <h2 className="heading-section text-ivory mb-3">
+            Rangkaian Acara
+          </h2>
+          <p className="font-cormorant text-xl sm:text-2xl text-gold italic font-normal">
+            {date.fullDate}
+          </p>
         </div>
 
-        {/* Navigation banner */}
-        <Reveal delay={0.15}>
-          <div className="p-6 md:p-8 rounded-3xl bg-surface border border-gold/50 relative overflow-hidden gold-box-shadow">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4 text-center md:text-left">
-                <div className="w-14 h-14 rounded-2xl gold-gradient-bg flex items-center justify-center text-night shrink-0 shadow-lg">
-                  <MapPin className="w-8 h-8" />
-                </div>
-                <div>
-                  <h4 className="font-cinzel text-lg md:text-xl font-bold text-ivory">
-                    Petunjuk Arah &amp; Navigasi Google Maps
-                  </h4>
-                  <p className="text-xs text-ivory/70">
-                    Jalan Dayung III &amp; IIIC No 6 — Akses rute langsung menuju lokasi pernikahan
-                  </p>
-                </div>
-              </div>
-              <a
-                href={wedding.mapLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3 rounded-full gold-gradient-bg text-night font-bold uppercase tracking-wider text-xs hover:brightness-110 transition shadow-lg shrink-0 flex items-center gap-2"
-              >
-                <Navigation className="w-4 h-4" />
-                <span>Petunjuk Arah</span>
-              </a>
+        {/* Two-Column Clean Layout: Vertical Timeline + Venue Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          {/* Column 1: Vertical Timeline (7 cols) */}
+          <div className="lg:col-span-7 relative pl-8 border-l border-gold/30 space-y-12">
+            {/* Timeline Node 1: Akad Nikah & Pemberkatan */}
+            <div className="relative">
+              {/* Timeline marker */}
+              <div
+                className="absolute -left-[37px] top-1.5 w-3.5 h-3.5 rounded-full bg-gold border-2 border-night"
+                aria-hidden="true"
+              />
+              <span className="text-xs uppercase tracking-wider text-gold font-sans font-semibold block mb-1">
+                {akad.time}
+              </span>
+              <h3 className="font-cormorant text-2xl sm:text-3xl font-semibold text-ivory leading-tight">
+                {akad.title}
+              </h3>
+              <p className="font-sans text-xs sm:text-sm text-ivory/65 mt-2 leading-relaxed">
+                Prosesi sakral ijab kabul dan ikrar janji suci penyatuan dua insan.
+              </p>
+            </div>
+
+            {/* Timeline Node 2: Resepsi */}
+            <div className="relative">
+              {/* Timeline marker */}
+              <div
+                className="absolute -left-[37px] top-1.5 w-3.5 h-3.5 rounded-full bg-gold border-2 border-night"
+                aria-hidden="true"
+              />
+              <span className="text-xs uppercase tracking-wider text-gold font-sans font-semibold block mb-1">
+                {resepsi.time}
+              </span>
+              <h3 className="font-cormorant text-2xl sm:text-3xl font-semibold text-ivory leading-tight">
+                {resepsi.title}
+              </h3>
+              <p className="font-sans text-xs sm:text-sm text-ivory/65 mt-2 leading-relaxed">
+                Ramah tamah, jamuan makan, dan doa restu bersama keluarga besar tercinta.
+              </p>
             </div>
           </div>
-        </Reveal>
+
+          {/* Column 2: One Venue Details Block (5 cols) */}
+          <div className="lg:col-span-5 p-8 rounded-2xl border border-gold/30 bg-surface/70">
+            <span className="text-xs font-sans uppercase tracking-widest text-gold font-semibold block mb-3">
+              Lokasi Acara
+            </span>
+            <h4 className="font-cormorant text-2xl sm:text-3xl font-semibold text-ivory mb-2">
+              {venue.name}
+            </h4>
+            <p className="font-sans text-sm text-ivory/75 leading-relaxed mb-8">
+              {venue.address}
+            </p>
+
+            {/* ONE clean Google Maps action button */}
+            <a
+              href={maps}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2.5 w-full py-3.5 rounded-full bg-gold hover:bg-gold-light text-night font-sans font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-md focus-visible:ring-2 focus-visible:ring-gold-light"
+            >
+              <MapPin className="w-4 h-4 text-night" />
+              <span>Buka Google Maps</span>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   );

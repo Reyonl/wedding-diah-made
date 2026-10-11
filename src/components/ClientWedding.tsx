@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/sections/HeroSection";
-import { WelcomeSection } from "@/components/sections/WelcomeSection";
 import { CoupleSection } from "@/components/sections/CoupleSection";
+import { DuaAdatSection } from "@/components/sections/DuaAdatSection";
 import { CountdownSection } from "@/components/sections/CountdownSection";
 import { EventSection } from "@/components/sections/EventSection";
 import { GallerySection } from "@/components/sections/GallerySection";
@@ -17,6 +17,8 @@ import { AudioPlayer } from "@/components/AudioPlayer";
  * ClientWedding Orchestrator
  * Parses ?to=Nama with new URLSearchParams(window.location.search) in useEffect (Hard Rule 3).
  * Trims input, caps at 40 chars, defaults to "Bapak/Ibu/Saudara/i".
+ * Section Background Rhythm: Cover (Night) -> Hero (Photo) -> Mempelai (Velvet) ->
+ * Dua Adat (Ivory) -> Acara & Countdown (Night) -> Galeri (Velvet) -> Tanda Kasih (Ivory) -> RSVP (Night).
  */
 export function ClientWedding() {
   const [guestName, setGuestName] = useState("Bapak/Ibu/Saudara/i");
@@ -42,8 +44,8 @@ export function ClientWedding() {
 
       {opened ? (
         <>
-          <WelcomeSection />
           <CoupleSection />
+          <DuaAdatSection />
           <CountdownSection />
           <EventSection />
           <GallerySection />

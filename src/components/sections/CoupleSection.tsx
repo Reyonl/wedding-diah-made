@@ -1,107 +1,146 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { wedding } from "@/lib/data";
+import { wedding } from "@/data/wedding";
 import { asset } from "@/lib/asset";
-import { Reveal, SectionHeading, GoldStar } from "@/components/ui/Reveal";
+import { PatraCorner } from "@/components/ornaments/PatraCorner";
 import { InstagramIcon } from "@/components/ui/InstagramIcon";
 
-function CoupleCard({
-  person,
-  isBride,
-  delay,
-}: {
-  person: (typeof wedding.couple)["bride"];
-  isBride: boolean;
-  delay: number;
-}) {
-  return (
-    <Reveal delay={delay} className="lg:col-span-5">
-      <motion.div
-        whileHover={{ y: -8, rotateY: isBride ? 3 : -3, rotateX: 2 }}
-        transition={{ type: "spring", stiffness: 180, damping: 18, mass: 0.8 }}
-        style={{ transformPerspective: 900 }}
-        className="relative flex flex-col items-center text-center p-8 rounded-3xl bg-night/85 border border-gold/40 overflow-hidden group hover:border-gold transition duration-500 gold-box-shadow"
-      >
-        {/* Bingkai foto lengkung (tradisi galeri) */}
-        <div className="relative w-56 h-72 md:w-60 md:h-80 mb-6 p-2 rounded-t-[7rem] rounded-b-xl border-2 border-gold bg-gradient-to-b from-maroon/60 to-charcoal shadow-2xl overflow-hidden">
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
-            <svg className="w-6 h-6 text-gold" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z" />
-            </svg>
-          </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={asset(person.photo)}
-            alt={person.fullName}
-            className="w-full h-full object-cover object-top rounded-t-[6.5rem] rounded-b-lg group-hover:scale-110 transition duration-1000 ease-out"
-          />
-        </div>
-
-        <span className="font-vibes text-3xl text-gold mb-1">
-          {isBride ? "Mempelai Wanita" : "Mempelai Pria"}
-        </span>
-        <h3 className="font-cinzel text-2xl md:text-3xl font-bold text-ivory mb-2">
-          {person.fullName}
-        </h3>
-        <p className="text-xs text-ivory/80 leading-relaxed font-sans max-w-sm mb-4">
-          {person.parents}
-        </p>
-        <p className="text-[11px] text-ivory/50 tracking-wider uppercase mb-5">
-          {person.culture}
-        </p>
-
-        <a
-          href={person.instagramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gold/60 bg-surface hover:bg-gold hover:text-night text-gold text-xs font-semibold tracking-wider transition-all duration-300 shadow"
-        >
-          <InstagramIcon className="w-4 h-4" />
-          <span>{person.instagram}</span>
-        </a>
-
-        <div className="absolute bottom-0 left-0 right-0 h-2 songket-border" />
-      </motion.div>
-    </Reveal>
-  );
-}
-
 export function CoupleSection() {
-  const { bride, groom } = wedding.couple;
+  const { bride, groom } = wedding;
+
   return (
-    <section id="mempelai" className="py-24 px-6 relative bg-surface border-y border-gold/20">
+    <section
+      id="mempelai"
+      className="py-28 px-6 relative bg-gradient-to-b from-night via-velvet-dark to-night overflow-hidden"
+    >
       <div className="max-w-6xl mx-auto">
-        <SectionHeading
-          eyebrow="Kedua Mempelai"
-          title={
-            <span className="gold-gradient-text">Sang Mempelai</span>
-          }
-          subtitle="Harmonisasi Luhur Tradisi Minangkabau & Bali"
-        />
-
-        <div className="grid grid-cols-1 lg:grid-cols-11 gap-10 items-center">
-          <CoupleCard person={bride} isBride delay={0.1} />
-
-          <div className="lg:col-span-1 flex flex-col items-center justify-center my-4 lg:my-0">
-            <Reveal direction="none">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-gold/70 bg-night flex items-center justify-center gold-box-shadow">
-                <span className="font-cormorant text-4xl md:text-5xl font-bold gold-gradient-text italic">
-                  &amp;
-                </span>
-              </div>
-            </Reveal>
-            <div className="hidden lg:block w-[1px] h-24 bg-gradient-to-b from-gold to-transparent mt-3" />
-          </div>
-
-          <CoupleCard person={groom} isBride={false} delay={0.2} />
+        {/* Section title: "Mempelai". No subtitle. */}
+        <div className="text-center mb-16 md:mb-20">
+          <h2 className="heading-section text-ivory">
+            Mempelai
+          </h2>
         </div>
 
-        {/* Aksen bawah */}
-        <div className="mt-14 flex items-center justify-center gap-3 text-gold/70">
-          <span className="w-12 h-[1px] bg-gold/50" />
-          <GoldStar className="w-5 h-5" />
-          <span className="w-12 h-[1px] bg-gold/50" />
+        {/* Staggered Asymmetric Layout */}
+        <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start justify-items-center">
+          {/* 1. Mempelai Wanita (Diah Insani) - Left Column */}
+          <div className="lg:col-span-5 flex flex-col items-center text-center w-full max-w-[400px]">
+            {/* Tall Arch Frame with PatraCorner ornaments */}
+            <div className="relative w-full aspect-[3/4] rounded-t-full rounded-b-2xl border-2 border-gold/60 p-2.5 shadow-2xl bg-velvet/40 mb-6">
+              {/* Balinese Patra Carved Corner Ornaments on Arch Corners */}
+              <div className="absolute -top-1 -left-1 z-20">
+                <PatraCorner position="top-left" size={48} />
+              </div>
+              <div className="absolute -top-1 -right-1 z-20">
+                <PatraCorner position="top-right" size={48} />
+              </div>
+              <div className="absolute -bottom-1 -left-1 z-20">
+                <PatraCorner position="bottom-left" size={48} />
+              </div>
+              <div className="absolute -bottom-1 -right-1 z-20">
+                <PatraCorner position="bottom-right" size={48} />
+              </div>
+
+              {/* Photo */}
+              <div className="relative w-full h-full rounded-t-full rounded-b-xl overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={asset(bride.photo)}
+                  alt={bride.name}
+                  className="w-full h-full object-cover object-top filter brightness-95"
+                />
+
+                {/* Dark gradient overlay on lower part of photo */}
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-night via-night/70 to-transparent flex flex-col justify-end p-6">
+                  <h3 className="font-cormorant text-2xl sm:text-3xl font-semibold text-ivory leading-tight">
+                    {bride.name}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Parents Bio */}
+            <p className="font-sans text-xs sm:text-sm text-ivory/80 leading-relaxed max-w-sm mb-4">
+              {bride.parents}
+            </p>
+
+            {/* Instagram Text Link */}
+            <a
+              href={bride.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs font-sans text-gold hover:text-gold-light transition-colors py-1 focus-visible:ring-1 focus-visible:ring-gold"
+              aria-label={`Instagram ${bride.nick}: ${bride.instagramHandle}`}
+            >
+              <InstagramIcon className="w-3.5 h-3.5 text-gold" />
+              <span className="font-medium underline underline-offset-4">
+                {bride.instagramHandle}
+              </span>
+            </a>
+          </div>
+
+          {/* Central Overlapping Italic Gold "&" */}
+          <div className="lg:col-span-2 flex items-center justify-center self-center my-4 lg:my-0 z-20">
+            <span className="font-cormorant italic text-6xl sm:text-7xl lg:text-8xl text-gold font-light select-none drop-shadow-md">
+              &amp;
+            </span>
+          </div>
+
+          {/* 2. Mempelai Pria (I Made Ariana Putra) - Right Column (Shifted down ~96px on desktop) */}
+          <div className="lg:col-span-5 lg:mt-24 flex flex-col items-center text-center w-full max-w-[400px]">
+            {/* Tall Arch Frame with PatraCorner ornaments */}
+            <div className="relative w-full aspect-[3/4] rounded-t-full rounded-b-2xl border-2 border-gold/60 p-2.5 shadow-2xl bg-velvet/40 mb-6">
+              {/* Balinese Patra Carved Corner Ornaments on Arch Corners */}
+              <div className="absolute -top-1 -left-1 z-20">
+                <PatraCorner position="top-left" size={48} />
+              </div>
+              <div className="absolute -top-1 -right-1 z-20">
+                <PatraCorner position="top-right" size={48} />
+              </div>
+              <div className="absolute -bottom-1 -left-1 z-20">
+                <PatraCorner position="bottom-left" size={48} />
+              </div>
+              <div className="absolute -bottom-1 -right-1 z-20">
+                <PatraCorner position="bottom-right" size={48} />
+              </div>
+
+              {/* Photo */}
+              <div className="relative w-full h-full rounded-t-full rounded-b-xl overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={asset(groom.photo)}
+                  alt={groom.name}
+                  className="w-full h-full object-cover object-top filter brightness-95"
+                />
+
+                {/* Dark gradient overlay on lower part of photo */}
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-night via-night/70 to-transparent flex flex-col justify-end p-6">
+                  <h3 className="font-cormorant text-2xl sm:text-3xl font-semibold text-ivory leading-tight">
+                    {groom.name}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Parents Bio */}
+            <p className="font-sans text-xs sm:text-sm text-ivory/80 leading-relaxed max-w-sm mb-4">
+              {groom.parents}
+            </p>
+
+            {/* Instagram Text Link */}
+            <a
+              href={groom.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs font-sans text-gold hover:text-gold-light transition-colors py-1 focus-visible:ring-1 focus-visible:ring-gold"
+              aria-label={`Instagram ${groom.nick}: ${groom.instagramHandle}`}
+            >
+              <InstagramIcon className="w-3.5 h-3.5 text-gold" />
+              <span className="font-medium underline underline-offset-4">
+                {groom.instagramHandle}
+              </span>
+            </a>
+          </div>
         </div>
       </div>
     </section>

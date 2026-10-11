@@ -199,3 +199,13 @@ export const wedding: WeddingData = {
     { href: "#rsvp", label: "RSVP" },
   ],
 };
+
+export function formatCountdownParts(msLeft: number) {
+  const s = Math.max(0, Math.floor(msLeft / 1000));
+  return {
+    days: String(Math.floor(s / 86400)).padStart(2, "0"),
+    hours: String(Math.floor((s % 86400) / 3600)).padStart(2, "0"),
+    minutes: String(Math.floor((s % 3600) / 60)).padStart(2, "0"),
+    seconds: String(s % 60).padStart(2, "0"),
+  };
+}

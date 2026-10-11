@@ -1,10 +1,58 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { CalendarPlus } from "lucide-react";
-import { wedding, buildCalendarUrl, formatCountdownParts } from "@/lib/data";
-import { Reveal } from "@/components/ui/Reveal";
+import { Calendar } from "lucide-react";
+import { wedding, formatCountdownParts } from "@/data/wedding";
+
+/**
+ * Generates an .ics file client-side containing both Akad and Resepsi events
+ * with Asia/Jakarta timezone.
+ */
+function downloadICS() {
+  const icsLines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//The Wedding of Diah and Made//ID",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "X-WR-TIMEZONE:Asia/Jakarta",
+    // Event 1: Akad Nikah & Pemberkatan
+    "BEGIN:VEVENT",
+    "UID:akad-20261128-diah-made@wedding",
+    "DTSTAMP:20261128T010000Z",
+    "DTSTART;TZID=Asia/Jakarta:20261128T080000",
+    "DTEND;TZID=Asia/Jakarta:20261128T100000",
+    `SUMMARY:${wedding.akad.title} Diah & Made`,
+    `DESCRIPTION:Pernikahan ${wedding.bride.name} & ${wedding.groom.name} ${wedding.hashtag}`,
+    `LOCATION:${wedding.venue.name}, ${wedding.venue.address}`,
+    "STATUS:CONFIRMED",
+    "END:VEVENT",
+    // Event 2: Resepsi
+    "BEGIN:VEVENT",
+    "UID:resepsi-20261128-diah-made@wedding",
+    "DTSTAMP:20261128T010000Z",
+    "DTSTART;TZID=Asia/Jakarta:20261128T110000",
+    "DTEND;TZID=Asia/Jakarta:20261128T140000",
+    `SUMMARY:${wedding.resepsi.title} Diah & Made`,
+    `DESCRIPTION:Resepsi Pernikahan ${wedding.bride.name} & ${wedding.groom.name} ${wedding.hashtag}`,
+    `LOCATION:${wedding.venue.name}, ${wedding.venue.address}`,
+    "STATUS:CONFIRMED",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+
+  const blob = new Blob([icsLines.join("\r\n")], {
+    type: "text/calendar;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Pernikahan-Diah-Made.ics";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export function CountdownSection() {
   const [now, setNow] = useState(() => Date.now());
@@ -14,7 +62,7 @@ export function CountdownSection() {
     return () => clearInterval(id);
   }, []);
 
-  const target = new Date(wedding.weddingDateISO).getTime();
+  const target = new Date(wedding.date.countdownTarget).getTime();
   const parts = formatCountdownParts(target - now);
   const isAfter = now >= target;
 
@@ -26,60 +74,52 @@ export function CountdownSection() {
   ];
 
   return (
-    <section id="savethedate" className="py-24 px-6 relative bg-prada overflow-hidden">
-      <div className="max-w-5xl mx-auto text-center relative z-10">
-        <Reveal>
-          <p className="font-cormorant text-goldlight tracking-[0.35em] uppercase text-xs md:text-sm font-semibold mb-2">
-            Hitung Mundur Hari Bahagia
-          </p>
-        </Reveal>
-        <Reveal delay={0.08}>
-          <h2 className="font-cinzel text-3xl md:text-5xl font-bold text-ivory mb-4">
+    <section id="savethedate" className="py-24 px-6 relative bg-night overflow-hidden border-t border-gold/15">
+      <div className="max-w-4xl mx-auto text-center">
+        {/* Section Heading */}
+        <div className="mb-14">
+          <h2 className="heading-section text-ivory mb-3">
             Save The Date
           </h2>
-        </Reveal>
-        <Reveal delay={0.15}>
-          <p className="text-xs md:text-sm text-ivory/70 max-w-lg mx-auto mb-12">
-            Menuju peresmian ikatan suci kami pada hari Sabtu, 28 November 2026
+          <p className="font-sans text-sm text-ivory/70 max-w-md mx-auto">
+            {wedding.date.fullDate}
           </p>
-        </Reveal>
+        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-3xl mx-auto mb-10">
+        {/* Large Numerals separated by thin vertical lines — NO boxes */}
+        <div className="flex items-center justify-center gap-4 sm:gap-8 md:gap-12 max-w-2xl mx-auto mb-14">
           {cells.map((c, i) => (
-            <Reveal key={c.label} delay={0.1 + i * 0.08}>
-              <motion.div
-                whileHover={{ y: -4 }}
-                className="p-6 rounded-2xl bg-surface/90 border border-gold/60 backdrop-blur-md gold-box-shadow"
-              >
-                <div className="font-cinzel text-4xl md:text-6xl font-bold gold-gradient-text tabular-nums h-12 md:h-16 flex items-center justify-center">
+            <div key={c.label} className="flex items-center gap-4 sm:gap-8 md:gap-12">
+              <div className="flex flex-col items-center">
+                <span className="font-cormorant text-5xl sm:text-7xl md:text-8xl font-semibold text-gold tabular-nums leading-none">
                   {c.value}
-                </div>
-                <span className="text-xs uppercase tracking-widest text-ivory/70 font-semibold mt-1 block">
+                </span>
+                <span className="text-xs uppercase tracking-wider text-ivory/60 font-sans mt-2">
                   {c.label}
                 </span>
-              </motion.div>
-            </Reveal>
+              </div>
+
+              {/* Thin vertical separator between items (except after last item) */}
+              {i < cells.length - 1 ? (
+                <div className="w-[1px] h-14 sm:h-20 bg-gold/25 self-center" aria-hidden="true" />
+              ) : null}
+            </div>
           ))}
         </div>
 
+        {/* Action Button: Generates client-side .ics with Asia/Jakarta TZID */}
         {isAfter ? (
-          <Reveal>
-            <p className="text-sm text-goldlight italic font-cormorant">
-              🎉 Hari bahagia telah tiba — selamat datang, para tamu istimewa!
-            </p>
-          </Reveal>
+          <p className="font-cormorant text-xl text-gold-light italic">
+            Hari bahagia telah tiba — selamat datang kepada para tamu undangan tercinta.
+          </p>
         ) : (
-          <Reveal delay={0.2}>
-            <a
-              href={buildCalendarUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-8 py-3.5 rounded-full gold-gradient-bg text-night font-bold uppercase tracking-widest text-xs hover:brightness-110 active:scale-95 transition-all shadow-xl gold-glow"
-            >
-              <CalendarPlus className="w-4 h-4" />
-              <span>Simpan ke Kalender</span>
-            </a>
-          </Reveal>
+          <button
+            onClick={downloadICS}
+            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full border border-gold/70 bg-surface hover:bg-gold hover:text-night text-gold font-sans font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-md cursor-pointer focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Simpan ke Kalender</span>
+          </button>
         )}
       </div>
     </section>
