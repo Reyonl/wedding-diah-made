@@ -60,6 +60,7 @@ function ensureAnalyser(): {
 type AudioCtxValue = {
   playing: boolean;
   toggle: () => void;
+  playWithFade: (target?: number, durationMs?: number) => Promise<void>;
   /** Level equalizer 0..1 untuk setiap bar (dipakai visualizer). */
   levels: number[];
 };
@@ -67,6 +68,7 @@ type AudioCtxValue = {
 const AudioCtx = createContext<AudioCtxValue>({
   playing: false,
   toggle: () => {},
+  playWithFade: async () => {},
   levels: [],
 });
 
@@ -109,6 +111,33 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     };
   }, [playing]);
 
+  const playWithFade = useCallback(async (target = 0.6, durationMs = 1500) => {
+    const audio = getSharedAudio();
+    try {
+      const eng = ensureAnalyser();
+      if (eng && eng.ctx.state === "suspended") {
+        await eng.ctx.resume();
+      }
+      audio.volume = 0;
+      await audio.play();
+      setPlaying(true);
+
+      const startTime = performance.now();
+      const step = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / durationMs);
+        audio.volume = progress * target;
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      };
+      requestAnimationFrame(step);
+    } catch (err) {
+      console.warn("[audio] playback blocked:", err);
+      setPlaying(false);
+    }
+  }, []);
+
   const toggle = useCallback(async () => {
     const audio = getSharedAudio();
     try {
@@ -138,7 +167,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AudioCtx.Provider value={{ playing, toggle, levels }}>
+    <AudioCtx.Provider value={{ playing, toggle, playWithFade, levels }}>
       {children}
     </AudioCtx.Provider>
   );

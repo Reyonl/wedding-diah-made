@@ -1,182 +1,223 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
-import { MailOpen, ChevronDown } from "lucide-react";
-import { wedding } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { wedding } from "@/data/wedding";
 import { asset } from "@/lib/asset";
 import { useLenis } from "@/components/providers/SmoothScroll";
 import { useAudio } from "@/components/providers/AudioProvider";
-import { CandiBentarGate, GonjongRoof } from "@/components/ornaments/CandiBentarGate";
+import { CandiBentarGate } from "@/components/ornaments/CandiBentarGate";
 import { FallingPetals } from "@/components/ornaments/FallingPetals";
+import { SongketStrip } from "@/components/ornaments/SongketStrip";
 
-export function HeroSection({
-  guestName,
-  onOpened,
-}: {
+interface HeroSectionProps {
   guestName: string;
   onOpened: () => void;
-}) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1.05, 1.2]);
-  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0.3]);
+}
 
-  const [opened, setOpened] = useState(false);
+/**
+ * Phase 2: Cover & Hero Experience
+ * - Cover: Volcanic brick Balinese Candi Bentar gate framing Diah & Made in the center gap.
+ * - Opening sequence: Button fades -> Music starts with 0 to 0.6 volume fade ->
+ *   Gate slides outward (cubic-bezier(.77,0,.18,1)) -> Photo scales 1.15 to 1 ->
+ *   Scroll unlocks -> Cover unmounts -> Seamless full-bleed Hero with SongketStrip.
+ */
+export function HeroSection({ guestName, onOpened }: HeroSectionProps) {
+  const [opening, setOpening] = useState(false);
+  const [coverMounted, setCoverMounted] = useState(true);
+  const [buttonFaded, setButtonFaded] = useState(false);
+  const [heroTextVisible, setHeroTextVisible] = useState(false);
+
   const { setLocked, scrollTo } = useLenis();
-  const { toggle } = useAudio();
+  const { playWithFade } = useAudio();
+  const prefersReduced = useReducedMotion();
+
+  // Lock scroll until cover is opened
+  useEffect(() => {
+    setLocked(true);
+  }, [setLocked]);
 
   const handleOpen = async () => {
-    setOpened(true);
-    // Buka kunci scroll (setelah gerbang membuka) & mulai audio dari gesture.
-    setTimeout(() => setLocked(false), 650);
-    // Autoplay musik (aman: dipicu oleh gesture).
-    await toggle();
-    // Scroll mulus ke welcome setelah gate terbuka.
+    // 1. Button fades out over 200ms
+    setButtonFaded(true);
+
+    // 2. Start music with gradual 1.5s volume fade (0 -> 0.6)
+    playWithFade(0.6, 1500).catch(() => {});
+
+    // 3. Trigger gate opening slide
+    setOpening(true);
+
+    // 4. Hero text fades in around 900ms
     setTimeout(() => {
-      onOpened();
-      scrollTo("#welcome");
+      setHeroTextVisible(true);
     }, 900);
+
+    // 5. Unlock scroll, unmount cover at 1300ms, and notify parent
+    setTimeout(() => {
+      setCoverMounted(false);
+      setLocked(false);
+      onOpened();
+      scrollTo("#hero");
+    }, prefersReduced ? 600 : 1300);
   };
 
+  const gateTransitionEase = [0.77, 0, 0.18, 1] as const;
+
   return (
-    <section
-      id="hero"
-      ref={sectionRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20"
-    >
-      {/* Photo cover + overlay */}
-      <motion.div
-        style={{ y, scale, opacity }}
-        className="absolute inset-0 z-0"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={asset(wedding.coverPhoto)}
-          alt="Diah & Made — Balinese Minangkabau Wedding"
-          className="w-full h-full object-cover object-center filter brightness-90"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-night via-night/80 to-maroon/75" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#0F0A08_85%)]" />
-      </motion.div>
+    <>
+      {/* ─────────────────────────────────────────────────────────────
+          1. COVER (Full Viewport Candi Bentar Gate)
+          ───────────────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {coverMounted ? (
+          <motion.div
+            key="wedding-cover"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }}
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-night select-none"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Undangan Pernikahan Diah & Made"
+          >
+            {/* Centered Cover Photo behind the gate gap */}
+            <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
+              <motion.img
+                src={asset(wedding.photos.cover)}
+                alt="Diah Insani & I Made Ariana Putra"
+                className="w-full h-full object-cover object-center filter brightness-95"
+                initial={{ scale: 1.15 }}
+                animate={{
+                  scale: opening ? 1 : 1.15,
+                  filter: opening ? "brightness(1.05)" : "brightness(0.92)",
+                }}
+                transition={{
+                  duration: prefersReduced ? 0.6 : 2.4,
+                  ease: gateTransitionEase,
+                }}
+              />
+              {/* Dark overlay ONLY at edges and bottom — never covering faces */}
+              <div className="absolute inset-0 bg-gradient-to-t from-night via-transparent to-night/60 pointer-events-none" />
+              <div className="absolute inset-0 bg-radial-to-r from-transparent via-transparent to-night/70 pointer-events-none" />
+            </div>
 
-      <FallingPetals />
+            {/* Falling Frangipani Petals */}
+            <FallingPetals maxDesktop={10} maxMobile={6} />
 
-      {/* Candi Bentar gate — membuka dengan spring saat "Buka Undangan" */}
-      <CandiBentarGate opened={opened} />
+            {/* Balinese Candi Bentar Gate */}
+            <CandiBentarGate opened={opening} />
 
-      {/* Content */}
-      <div className="relative z-30 max-w-4xl mx-auto px-6 text-center flex flex-col items-center">
-        <AnimatePresence mode="wait">
-          {!opened ? (
-            <motion.div
-              key="invite"
-              initial={{ opacity: 0, y: 26 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -24, transition: { duration: 0.4 } }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center"
-            >
-              {/* Ornamen atas */}
-              <div className="mb-4 flex items-center justify-center gap-4">
-                <div className="w-16 md:w-28 h-[1px] bg-gradient-to-r from-transparent via-gold to-gold" />
-                <svg
-                  className="w-8 h-8 text-gold"
-                  viewBox="0 0 40 40"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M20 2 C22 12 28 18 38 20 C28 22 22 28 20 38 C18 28 12 22 2 20 C12 18 18 12 20 2 Z" />
-                  <circle cx="20" cy="20" r="4" fill="#B3141F" />
-                </svg>
-                <div className="w-16 md:w-28 h-[1px] bg-gradient-to-l from-transparent via-gold to-gold" />
-              </div>
-
-              <p className="font-cormorant text-goldlight tracking-[0.35em] text-xs md:text-sm uppercase font-semibold mb-2">
-                The Wedding of
-              </p>
-
-              <h1 className="font-cinzel text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black gold-gradient-text tracking-wider mb-4 drop-shadow-[0_4px_25px_rgba(212,165,58,0.5)]">
-                Diah &amp; Made
-              </h1>
-
-              <div className="inline-flex items-center gap-2 px-6 py-1.5 rounded-full bg-charcoal/80 border border-gold/40 text-xs md:text-sm text-ivory font-cormorant tracking-widest uppercase mb-8 backdrop-blur-md">
-                <span>Sabtu</span>
-                <span className="w-1 h-1 rounded-full bg-gold" />
-                <span className="text-gold font-bold">28 November 2026</span>
-              </div>
-
-              {/* Guest card */}
+            {/* Centered Gap Content (never touching the gate) */}
+            <div className="relative z-30 w-full max-w-[280px] sm:max-w-md md:max-w-lg lg:max-w-xl px-4 text-center flex flex-col items-center">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-surface/85 border border-gold/50 backdrop-blur-lg gold-box-shadow relative mb-8"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: buttonFaded ? 0 : 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex flex-col items-center w-full"
               >
-                <span className="absolute top-2 left-3 text-gold text-xs">◆</span>
-                <span className="absolute top-2 right-3 text-gold text-xs">◆</span>
-                <span className="absolute bottom-2 left-3 text-gold text-xs">◆</span>
-                <span className="absolute bottom-2 right-3 text-gold text-xs">◆</span>
-
-                <p className="text-xs uppercase tracking-widest text-ivory/70 mb-2">
-                  Kepada Yth. Bapak/Ibu/Saudara/i
-                </p>
-                <h3 className="font-cormorant text-2xl md:text-3xl font-bold text-goldlight mb-1 min-h-[2.5rem] break-words">
-                  {guestName}
-                </h3>
-                <p className="text-[11px] text-ivory/50 tracking-wider">
-                  Kami mengundang Anda untuk hadir berbagi kebahagiaan dalam momen suci kami.
+                <p className="font-cormorant text-ivory/80 text-sm md:text-base tracking-widest uppercase mb-2">
+                  The Wedding of
                 </p>
 
+                {/* Couple Names: Stacked on mobile (Diah / & / Made), inline on desktop */}
+                <h1 className="font-cormorant text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold text-ivory tracking-tight mb-3">
+                  <span className="block sm:inline">Diah</span>{" "}
+                  <span className="font-cormorant italic font-normal text-gold px-1">
+                    &amp;
+                  </span>{" "}
+                  <span className="block sm:inline">Made</span>
+                </h1>
+
+                {/* Plain date line (no pill) */}
+                <p className="font-sans text-xs sm:text-sm text-ivory/85 mb-6 sm:mb-8 font-normal tracking-wide">
+                  {wedding.date.fullDate}
+                </p>
+
+                {/* Clean guest salutation — no box, no diamond ornament */}
+                <div className="mb-8 w-full max-w-sm">
+                  <p className="text-xs text-ivory/65 font-sans mb-1.5">
+                    Kepada Yth.
+                  </p>
+                  <p className="font-cormorant text-2xl sm:text-3xl text-gold-light font-semibold leading-snug break-words">
+                    {guestName}
+                  </p>
+                </div>
+
+                {/* Single dignified gold button */}
                 <button
                   onClick={handleOpen}
-                  className="mt-6 w-full py-3.5 px-8 rounded-full gold-gradient-bg text-night font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all duration-300 gold-glow shadow-xl cursor-pointer"
+                  disabled={opening}
+                  className="px-8 py-3.5 rounded-full bg-gold hover:bg-gold-light text-night font-sans font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-lg cursor-pointer focus-visible:ring-2 focus-visible:ring-gold-light"
                 >
-                  <MailOpen className="w-4 h-4" />
-                  <span>Buka Undangan</span>
+                  Buka Undangan
                 </button>
               </motion.div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
-              <div className="inline-flex flex-col items-center text-gold/70">
-                <span className="text-[10px] uppercase tracking-widest font-semibold mb-1">
-                  Gulir untuk membuka gerbang
-                </span>
-                <ChevronDown className="w-4 h-4 animate-bounce" />
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="opening"
-              initial={{ opacity: 0, scale: 0.85, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-              className="text-center"
-            >
-              <p className="font-cormorant text-goldlight tracking-[0.4em] uppercase text-sm font-semibold mb-3">
-                Assalamualaikum Wr. Wb.
-              </p>
-              <h2 className="font-vibes text-5xl md:text-7xl text-goldlight mb-4">
-                Selamat Datang
-              </h2>
-              <p className="text-sm md:text-base text-ivory/80 max-w-lg mx-auto font-sans leading-relaxed">
-                {guestName !== "Tamu Undangan Terhormat"
-                  ? `${guestName}, terima kasih telah hadir dalam momen spesial kami.`
-                  : "Terima kasih telah hadir dalam momen spesial kami."}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* ─────────────────────────────────────────────────────────────
+          2. HERO SECTION (Full-Bleed Studio Photo after Opening)
+          ───────────────────────────────────────────────────────────── */}
+      <section
+        id="hero"
+        className="relative min-h-[90vh] md:min-h-screen flex items-end justify-center overflow-hidden bg-night"
+      >
+        {/* Full-bleed studio photo, gradient only at the bottom */}
+        <div className="absolute inset-0 z-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={asset(wedding.photos.cover)}
+            alt="Pernikahan Diah Insani & I Made Ariana Putra"
+            className="w-full h-full object-cover object-top filter brightness-95"
+          />
+          {/* Subtle vignette and bottom gradient only */}
+          <div className="absolute inset-0 bg-gradient-to-t from-night via-night/50 to-transparent" />
+        </div>
 
-      {/* Gonjong roof + songket border bottom */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
-        <GonjongRoof />
-        <div className="h-2 w-full songket-border" />
-      </div>
-    </section>
+        {/* Ambient Petals on Hero */}
+        <FallingPetals maxDesktop={8} maxMobile={4} />
+
+        {/* Hero Editorial Content */}
+        <div className="relative z-20 max-w-4xl mx-auto px-6 pb-20 pt-32 text-center flex flex-col items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{
+              opacity: heroTextVisible || !coverMounted ? 1 : 0,
+              y: heroTextVisible || !coverMounted ? 0 : 24,
+            }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center"
+          >
+            {/* Greeting line */}
+            <p className="font-cormorant text-gold text-lg md:text-xl italic mb-3">
+              {wedding.greeting.text}
+              {wedding.greeting.showOmSwastyastu ? " • Om Swastyastu" : ""}
+            </p>
+
+            {/* Names */}
+            <h2 className="display-names text-ivory font-semibold mb-3">
+              Diah <span className="italic font-normal text-gold">&amp;</span> Made
+            </h2>
+
+            {/* Plain date line */}
+            <p className="font-sans text-sm md:text-base text-gold-light mb-6 font-medium">
+              {wedding.date.fullDate}
+            </p>
+
+            {/* Core invitation sentence */}
+            <p className="body-editorial text-ivory/85 text-sm md:text-base leading-relaxed max-w-xl mx-auto">
+              Dengan restu orang tua dan keluarga besar, kami mengundang Bapak/Ibu/Saudara/i
+              untuk menyaksikan hari bahagia kami.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Bottom edge: Authentic Minangkabau Songket Strip */}
+        <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
+          <SongketStrip />
+        </div>
+      </section>
+    </>
   );
 }

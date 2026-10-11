@@ -1,108 +1,284 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+
+interface GateProps {
+  opened: boolean;
+}
 
 /**
- * Candi Bentar — gerbang candi terbelah (khas Bali).
- * Dua panel kiri/kanan, masing-masing dengan ukiran & relief.
- * Menerima `opened` untuk menggerakkan panel ke luar layar dengan spring.
+ * Authentic Balinese Candi Bentar Split Temple Gate
+ * Two mirrored monolithic leaves with stepped narrowing tiers, perfectly vertical inner edges.
+ * Rendered with layered stone/brick course gradients, subtle feTurbulence volcanic noise,
+ * inner shadow toward the central opening, carved patra center panels, and thin gold tier caps.
+ * Under prefers-reduced-motion: opens with a pure fade rather than translateX.
  */
-export function CandiBentarGate({ opened }: { opened: boolean }) {
-  const panelTransition = {
-    type: "spring" as const,
-    stiffness: 42,
-    damping: 17,
-    mass: 1.1,
-  };
+export function CandiBentarGate({ opened }: GateProps) {
+  const prefersReduced = useReducedMotion();
+
+  const transition = prefersReduced
+    ? { duration: 0.8, ease: "easeOut" as const }
+    : { duration: 1.1, ease: [0.77, 0, 0.18, 1] as [number, number, number, number] };
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20 flex justify-between overflow-hidden">
+      {/* Left Leaf */}
       <motion.div
-        className="h-full w-[46%] sm:w-[38%] lg:w-[30%]"
-        initial={{ x: 0 }}
-        animate={{ x: opened ? "-102%" : 0 }}
-        transition={panelTransition}
+        className="h-full w-[30vw] md:w-[38vw] relative"
+        initial={{ x: 0, opacity: 1 }}
+        animate={
+          prefersReduced
+            ? { opacity: opened ? 0 : 1 }
+            : { x: opened ? "-102%" : "0%" }
+        }
+        transition={transition}
       >
-        <GatePanel side="left" />
+        <GateLeaf side="left" />
       </motion.div>
+
+      {/* Right Leaf */}
       <motion.div
-        className="h-full w-[46%] sm:w-[38%] lg:w-[30%]"
-        initial={{ x: 0 }}
-        animate={{ x: opened ? "102%" : 0 }}
-        transition={panelTransition}
+        className="h-full w-[30vw] md:w-[38vw] relative"
+        initial={{ x: 0, opacity: 1 }}
+        animate={
+          prefersReduced
+            ? { opacity: opened ? 0 : 1 }
+            : { x: opened ? "102%" : "0%" }
+        }
+        transition={transition}
       >
-        <GatePanel side="right" />
+        <GateLeaf side="right" />
       </motion.div>
     </div>
   );
 }
 
-function GatePanel({ side }: { side: "left" | "right" }) {
-  // Path yang menyerupai candi bentar: badan bertingkat + puncak meruncing.
-  const d =
-    side === "left"
-      ? "M280 40 L280 800 L20 800 L30 720 L80 720 L90 640 L50 640 L60 560 L110 560 L120 470 L70 470 L80 390 L130 390 L140 300 L90 300 L110 200 L160 200 L170 120 L220 120 L230 50 Z"
-      : "M20 40 L20 800 L280 800 L270 720 L220 720 L210 640 L250 640 L240 560 L190 560 L180 470 L230 470 L220 390 L170 390 L160 300 L210 300 L190 200 L140 200 L130 120 L80 120 L70 50 Z";
-
-  const decoration =
-    side === "left"
-      ? {
-          lines: "M260 70 L260 780 M240 100 L240 760 M200 140 L200 760 M150 220 L150 760",
-          c1: [200, 280],
-          c2: [220, 450],
-        }
-      : {
-          lines: "M40 70 L40 780 M60 100 L60 760 M100 140 L100 760 M150 220 L150 760",
-          c1: [100, 280],
-          c2: [80, 450],
-        };
+function GateLeaf({ side }: { side: "left" | "right" }) {
+  const isLeft = side === "left";
 
   return (
-    <svg
-      viewBox="0 0 300 800"
-      preserveAspectRatio="none"
-      className="w-full h-full text-gold/75 drop-shadow-[0_0_18px_rgba(212,165,58,0.35)]"
-      aria-hidden="true"
+    <div
+      className={`w-full h-full relative ${
+        isLeft ? "" : "scale-x-[-1]"
+      }`}
     >
-      <path d={d} fill="#18110E" stroke="#D4A53A" strokeWidth="3" />
-      <path
-        d={decoration.lines}
-        stroke="#F2C94C"
-        strokeWidth="1.5"
-        strokeDasharray="6,4"
-        fill="none"
-      />
-      <circle
-        cx={decoration.c1[0]}
-        cy={decoration.c1[1]}
-        r="14"
-        fill="#5A0F14"
-        stroke="#D4A53A"
-        strokeWidth="2"
-      />
-      <circle
-        cx={decoration.c2[0]}
-        cy={decoration.c2[1]}
-        r="18"
-        fill="#5A0F14"
-        stroke="#D4A53A"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
+      <svg
+        viewBox="0 0 380 1000"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full block"
+        aria-hidden="true"
+      >
+        <defs>
+          {/* Subtle volcanic stone noise filter */}
+          <filter id={`stone-noise-${side}`} x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.04"
+              numOctaves="3"
+              result="noise"
+            />
+            <feColorMatrix
+              type="matrix"
+              values="
+                0 0 0 0 0.14
+                0 0 0 0 0.08
+                0 0 0 0 0.06
+                0 0 0 0.15 0"
+              result="coloredNoise"
+            />
+            <feComposite in="SourceGraphic" in2="coloredNoise" operator="over" />
+          </filter>
 
-/** Siluet atap gonjong (rumah gadang Minangkabau) sebagai pembatas bawah. */
-export function GonjongRoof({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 1440 120"
-      preserveAspectRatio="none"
-      fill="currentColor"
-      className={className ?? "w-full h-14 md:h-20 text-night"}
-      aria-hidden="true"
-    >
-      <path d="M0,120 L1440,120 L1440,90 Q1360,10 1310,2 L1300,30 Q1220,10 1170,2 L1160,30 Q1080,10 1030,2 L1020,30 Q940,10 890,2 L880,30 Q800,10 750,2 L740,30 Q660,10 610,2 L600,30 Q520,10 470,2 L460,30 Q380,10 330,2 L320,30 Q240,10 190,2 L180,30 Q100,10 50,2 L40,30 L0,90 Z" />
-    </svg>
+          {/* Staggered brick course repeating pattern */}
+          <pattern
+            id={`brick-courses-${side}`}
+            width="50"
+            height="24"
+            patternUnits="userSpaceOnUse"
+          >
+            {/* Dark terracotta base */}
+            <rect width="50" height="24" fill="#20100D" />
+            {/* Top course bricks */}
+            <rect x="1" y="1" width="48" height="10" fill="#2B1612" rx="1" />
+            <line x1="0" y1="12" x2="50" y2="12" stroke="#140806" strokeWidth="1.2" />
+            {/* Staggered bottom course bricks */}
+            <rect x="1" y="13" width="23" height="10" fill="#261310" rx="1" />
+            <rect x="26" y="13" width="23" height="10" fill="#2B1612" rx="1" />
+            <line x1="25" y1="12" x2="25" y2="24" stroke="#140806" strokeWidth="1.2" />
+          </pattern>
+
+          {/* Inner shadow toward the vertical center gap (at x=380) */}
+          <linearGradient id={`gap-shadow-${side}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#0F0A08" stopOpacity="0.4" />
+            <stop offset="70%" stopColor="#0F0A08" stopOpacity="0" />
+            <stop offset="100%" stopColor="#0F0A08" stopOpacity="0.65" />
+          </linearGradient>
+
+          {/* Vertical depth gradient */}
+          <linearGradient id={`vertical-depth-${side}`} x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor="#140A08" stopOpacity="0.9" />
+            <stop offset="60%" stopColor="#2A1612" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#0F0A08" stopOpacity="0.85" />
+          </linearGradient>
+        </defs>
+
+        {/*
+          Candi Bentar Architectural Geometry:
+          Right edge (x=380) is the vertical gap facing the courtyard/couple.
+          Left edge steps inward progressively across 5 grand tiers.
+        */}
+        <g filter={`url(#stone-noise-${side})`}>
+          {/* Main stepped monolithic silhouette */}
+          <path
+            d="
+              M 380 0
+              L 380 1000
+              L 20 1000
+              L 20 860
+              L 65 860
+              L 65 720
+              L 115 720
+              L 115 560
+              L 170 560
+              L 170 410
+              L 230 410
+              L 230 260
+              L 285 260
+              L 285 130
+              L 335 130
+              L 350 40
+              L 380 0
+              Z
+            "
+            fill={`url(#brick-courses-${side})`}
+            stroke="#120605"
+            strokeWidth="2"
+          />
+
+          {/* Atmospheric shadows */}
+          <path
+            d="
+              M 380 0 L 380 1000 L 20 1000 L 20 860 L 65 860 L 65 720
+              L 115 720 L 115 560 L 170 560 L 170 410 L 230 410
+              L 230 260 L 285 260 L 285 130 L 335 130 L 350 40 L 380 0 Z
+            "
+            fill={`url(#gap-shadow-${side})`}
+          />
+          <path
+            d="
+              M 380 0 L 380 1000 L 20 1000 L 20 860 L 65 860 L 65 720
+              L 115 720 L 115 560 L 170 560 L 170 410 L 230 410
+              L 230 260 L 285 260 L 285 130 L 335 130 L 350 40 L 380 0 Z
+            "
+            fill={`url(#vertical-depth-${side})`}
+          />
+        </g>
+
+        {/* Tier Ledge Trim Lines: 1px light gold on top with soft dark shadow underneath */}
+        {[
+          { x1: 20, y: 860 },
+          { x1: 65, y: 720 },
+          { x1: 115, y: 560 },
+          { x1: 170, y: 410 },
+          { x1: 230, y: 260 },
+          { x1: 285, y: 130 },
+          { x1: 335, y: 40 },
+        ].map((tier, i) => (
+          <g key={i}>
+            {/* Soft dark shadow underneath the ledge */}
+            <line
+              x1={tier.x1}
+              y1={tier.y + 2.5}
+              x2="380"
+              y2={tier.y + 2.5}
+              stroke="#080302"
+              strokeWidth="3.5"
+              opacity="0.8"
+            />
+            {/* 1px light gold line on top of ledge */}
+            <line
+              x1={tier.x1}
+              y1={tier.y}
+              x2="380"
+              y2={tier.y}
+              stroke="#D4A53A"
+              strokeWidth="1.2"
+              opacity="0.85"
+            />
+            {/* Delicate gold corner cap dot */}
+            <circle
+              cx={tier.x1 + 1}
+              cy={tier.y}
+              r="2.2"
+              fill="#F2D27A"
+            />
+          </g>
+        ))}
+
+        {/* Centered Carved Patra Relief Panel on Middle Body */}
+        <g opacity="0.82">
+          {/* Panel frame */}
+          <rect
+            x="240"
+            y="470"
+            width="120"
+            height="180"
+            fill="#180A08"
+            stroke="#D4A53A"
+            strokeWidth="1"
+            rx="3"
+          />
+          {/* Inner frame inset */}
+          <rect
+            x="245"
+            y="475"
+            width="110"
+            height="170"
+            fill="none"
+            stroke="#9A6F1E"
+            strokeWidth="0.8"
+            strokeDasharray="4 2"
+          />
+          {/* Balinese Karang Bintulu / Patra Floral Carving Center */}
+          <path
+            d="
+              M 300 510
+              C 320 520, 335 550, 315 570
+              C 295 590, 275 560, 290 540
+              C 300 525, 312 535, 305 545
+            "
+            stroke="#D4A53A"
+            strokeWidth="1.2"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="
+              M 300 610
+              C 320 600, 335 570, 315 550
+              C 295 530, 275 560, 290 580
+              C 300 595, 312 585, 305 575
+            "
+            stroke="#D4A53A"
+            strokeWidth="1.2"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <circle cx="300" cy="560" r="4" fill="#F2D27A" />
+        </g>
+
+        {/* Vertical Inner Gap Boundary Accent */}
+        <line
+          x1="379.5"
+          y1="0"
+          x2="379.5"
+          y2="1000"
+          stroke="#D4A53A"
+          strokeWidth="0.8"
+          opacity="0.35"
+        />
+      </svg>
+    </div>
   );
 }

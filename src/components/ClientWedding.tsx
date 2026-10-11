@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { WelcomeSection } from "@/components/sections/WelcomeSection";
@@ -15,16 +14,31 @@ import { Footer } from "@/components/Footer";
 import { AudioPlayer } from "@/components/AudioPlayer";
 
 /**
- * GuestGate: menyembunyikan seluruh konten undangan sampai gerbang dibuka.
- * Membaca ?to=Nama+Tamu untuk personalisasi kartu.
+ * ClientWedding Orchestrator
+ * Parses ?to=Nama with new URLSearchParams(window.location.search) in useEffect (Hard Rule 3).
+ * Trims input, caps at 40 chars, defaults to "Bapak/Ibu/Saudara/i".
  */
-function GuestGate({ guestName }: { guestName: string }) {
+export function ClientWedding() {
+  const [guestName, setGuestName] = useState("Bapak/Ibu/Saudara/i");
   const [opened, setOpened] = useState(false);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const raw = params.get("to") || params.get("u") || params.get("guest");
+      if (raw) {
+        const clean = raw.trim().replace(/\s+/g, " ").slice(0, 40);
+        if (clean) setGuestName(clean);
+      }
+    } catch {
+      // Fallback stays "Bapak/Ibu/Saudara/i"
+    }
+  }, []);
 
   return (
     <>
       <Navbar visible={opened} />
-              <HeroSection guestName={guestName} onOpened={() => setOpened(true)} />
+      <HeroSection guestName={guestName} onOpened={() => setOpened(true)} />
 
       {opened ? (
         <>
@@ -40,26 +54,5 @@ function GuestGate({ guestName }: { guestName: string }) {
         </>
       ) : null}
     </>
-  );
-}
-
-function ClientWeddingInner() {
-  const searchParams = useSearchParams();
-  const guestName = useMemo(() => {
-    const raw = searchParams.get("to") || searchParams.get("u") || searchParams.get("guest");
-    if (!raw) return "Tamu Undangan Terhormat";
-    // Bersihkan input, batasi panjang.
-    const clean = raw.trim().replace(/\s+/g, " ").slice(0, 60);
-    return clean || "Tamu Undangan Terhormat";
-  }, [searchParams]);
-
-  return <GuestGate guestName={guestName} />;
-}
-
-export function ClientWedding() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-night" />}>
-      <ClientWeddingInner />
-    </Suspense>
   );
 }
