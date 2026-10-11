@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { CalendarPlus } from "lucide-react";
 import { wedding, buildCalendarUrl, formatCountdownParts } from "@/lib/data";
 import { Reveal } from "@/components/ui/Reveal";
@@ -51,19 +51,8 @@ export function CountdownSection() {
                 whileHover={{ y: -4 }}
                 className="p-6 rounded-2xl bg-surface/90 border border-gold/60 backdrop-blur-md gold-box-shadow"
               >
-                <div className="font-cinzel text-4xl md:text-6xl font-bold gold-gradient-text tabular-nums overflow-hidden">
-                  <AnimatePresence mode="popLayout">
-                    <motion.span
-                      key={c.value}
-                      initial={{ y: 12, opacity: 0, filter: "blur(4px)" }}
-                      animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-                      exit={{ y: -12, opacity: 0, filter: "blur(4px)" }}
-                      transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.5 }}
-                      className="inline-block tabular-nums"
-                    >
-                      {c.value}
-                    </motion.span>
-                  </AnimatePresence>
+                <div className="font-cinzel text-4xl md:text-6xl font-bold gold-gradient-text tabular-nums h-12 md:h-16 flex items-center justify-center">
+                  {c.value}
                 </div>
                 <span className="text-xs uppercase tracking-widest text-ivory/70 font-semibold mt-1 block">
                   {c.label}
