@@ -46,14 +46,26 @@ export function RsvpSection() {
 
   const lastSubmitRef = useRef<number>(0);
 
-  // Initialize from localStorage and remote endpoint
+  // Determine active API endpoint (Hostinger MySQL endpoint or custom URL)
+  const getApiEndpoint = () => {
+    if (wedding.wishesApiUrl) return wedding.wishesApiUrl;
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      // On Hostinger or custom domain, default to /api/wishes.php
+      if (host !== "localhost" && !host.includes("github.io")) {
+        return "/api/wishes.php";
+      }
+    }
+    return "";
+  };
+
+  // Initialize from localStorage and remote MySQL endpoint
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed: Wish[] = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Merge unique wishes
           const merged = [...parsed, ...SEED_WISHES.filter((s) => !parsed.some((p) => p.id === s.id))];
           setWishes(merged);
         }
@@ -62,14 +74,20 @@ export function RsvpSection() {
       // Ignore localStorage errors
     }
 
-    if (!wedding.rsvpEndpoint) return;
+    const endpoint = getApiEndpoint();
+    if (!endpoint) return;
+
     const fetchWishes = async () => {
       try {
-        const res = await fetch(wedding.rsvpEndpoint, { method: "GET" });
+        const res = await fetch(endpoint, { method: "GET" });
         if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setWishes(data);
+          const json = await res.json();
+          const list = Array.isArray(json) ? json : json.data;
+          if (Array.isArray(list) && list.length > 0) {
+            setWishes(list);
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            } catch {}
           }
         }
       } catch {
@@ -115,27 +133,34 @@ export function RsvpSection() {
       time: "Baru saja",
     };
 
-    // Update state and localStorage
+    // 3. Submit to Hostinger MySQL endpoint if available
+    const endpoint = getApiEndpoint();
+    if (endpoint) {
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newWish.name, message: newWish.message }),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && json.data.id) {
+            newWish.id = String(json.data.id);
+            newWish.time = json.data.time || newWish.time;
+          }
+        }
+      } catch {
+        // Handled gracefully: wish still persisted locally
+      }
+    }
+
+    // 4. Update state and localStorage
     const updated = [newWish, ...wishes.filter((w) => w.id !== newWish.id)];
     setWishes(updated);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch {
       // Ignore storage errors
-    }
-
-    // If endpoint configured, submit via POST
-    if (wedding.rsvpEndpoint) {
-      try {
-        await fetch(wedding.rsvpEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newWish),
-          mode: "no-cors",
-        });
-      } catch {
-        // Handled gracefully
-      }
     }
 
     setLoading(false);

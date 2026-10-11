@@ -75,6 +75,7 @@ export interface WeddingData {
   };
   whatsappNumber: string;
   rsvpEndpoint: string;
+  wishesApiUrl: string;
   photos: {
     cover: string;
     bride: string;
@@ -153,6 +154,7 @@ export const wedding: WeddingData = {
   },
   whatsappNumber: "", // TODO: add bride/groom WhatsApp number
   rsvpEndpoint: process.env.NEXT_PUBLIC_RSVP_URL || "",
+  wishesApiUrl: process.env.NEXT_PUBLIC_WISHES_API_URL || process.env.NEXT_PUBLIC_RSVP_URL || "",
   photos: {
     cover: "/images/cover.jpg",
     bride: "/images/mempelai-wanita.jpg",
