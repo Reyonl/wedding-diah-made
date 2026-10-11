@@ -18,8 +18,9 @@ function CoupleCard({
   return (
     <Reveal delay={delay} className="lg:col-span-5">
       <motion.div
-        whileHover={{ y: -6 }}
-        transition={{ type: "spring", stiffness: 220, damping: 20 }}
+        whileHover={{ y: -8, rotateY: isBride ? 3 : -3, rotateX: 2 }}
+        transition={{ type: "spring", stiffness: 180, damping: 18, mass: 0.8 }}
+        style={{ transformPerspective: 900 }}
         className="relative flex flex-col items-center text-center p-8 rounded-3xl bg-night/85 border border-gold/40 overflow-hidden group hover:border-gold transition duration-500 gold-box-shadow"
       >
         {/* Bingkai foto lengkung (tradisi galeri) */}
@@ -33,7 +34,7 @@ function CoupleCard({
           <img
             src={asset(person.photo)}
             alt={person.fullName}
-            className="w-full h-full object-cover object-top rounded-t-[6.5rem] rounded-b-lg group-hover:scale-105 transition duration-700"
+            className="w-full h-full object-cover object-top rounded-t-[6.5rem] rounded-b-lg group-hover:scale-110 transition duration-1000 ease-out"
           />
         </div>
 

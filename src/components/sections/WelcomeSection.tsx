@@ -15,8 +15,12 @@ export function WelcomeSection() {
               className={`w-10 h-10 md:w-16 md:h-16 text-gold drop-shadow ${flip}`}
               viewBox="0 0 100 100"
               aria-hidden="true"
-              animate={{ opacity: [0.75, 1, 0.75] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              animate={{
+                opacity: [0.75, 1, 0.75],
+                y: [0, -6, 0],
+                rotate: [0, 3, 0],
+              }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
             >
               <path
                 d="M10 50 C 30 20, 70 20, 90 50 C 70 80, 30 80, 10 50 Z"

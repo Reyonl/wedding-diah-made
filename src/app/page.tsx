@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ClientWedding } from "@/components/ClientWedding";
-import { wedding } from "@/lib/data";
 
 const desc =
   "Pernikahan Diah Insani & I Made Ariana Putra — Sabtu, 28 November 2026. Perpaduan luhur adat Minangkabau dan Bali. #DiahMade";

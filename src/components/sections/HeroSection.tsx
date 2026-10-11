@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState, useRef } from "react";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { MailOpen, ChevronDown } from "lucide-react";
 import { wedding } from "@/lib/data";
 import { asset } from "@/lib/asset";
@@ -17,6 +17,15 @@ export function HeroSection({
   guestName: string;
   onOpened: () => void;
 }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1.05, 1.2]);
+  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0.3]);
+
   const [opened, setOpened] = useState(false);
   const { setLocked, scrollTo } = useLenis();
   const { toggle } = useAudio();
@@ -37,19 +46,23 @@ export function HeroSection({
   return (
     <section
       id="hero"
+      ref={sectionRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20"
     >
       {/* Photo cover + overlay */}
-      <div className="absolute inset-0 z-0">
+      <motion.div
+        style={{ y, scale, opacity }}
+        className="absolute inset-0 z-0"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={asset(wedding.coverPhoto)}
           alt="Diah & Made — Balinese Minangkabau Wedding"
-          className="w-full h-full object-cover object-center scale-105 filter brightness-90"
+          className="w-full h-full object-cover object-center filter brightness-90"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-night via-night/80 to-maroon/75" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#0F0A08_85%)]" />
-      </div>
+      </motion.div>
 
       <FallingPetals />
 
@@ -138,9 +151,9 @@ export function HeroSection({
           ) : (
             <motion.div
               key="opening"
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, scale: 0.85, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
               className="text-center"
             >
               <p className="font-cormorant text-goldlight tracking-[0.4em] uppercase text-sm font-semibold mb-3">

@@ -13,11 +13,21 @@ import { Reveal, SectionHeading } from "@/components/ui/Reveal";
  */
 export function GallerySection() {
   const [active, setActive] = useState<number | null>(null);
+  const [direction, setDirection] = useState(0);
 
-  const open = (i: number) => setActive(i);
+  const open = (i: number) => {
+    setDirection(0);
+    setActive(i);
+  };
   const close = () => setActive(null);
-  const prev = () => setActive((i) => (i === null ? i : (i + wedding.gallery.length - 1) % wedding.gallery.length));
-  const next = () => setActive((i) => (i === null ? i : (i + 1) % wedding.gallery.length));
+  const prev = () => {
+    setDirection(-1);
+    setActive((i) => (i === null ? i : (i + wedding.gallery.length - 1) % wedding.gallery.length));
+  };
+  const next = () => {
+    setDirection(1);
+    setActive((i) => (i === null ? i : (i + 1) % wedding.gallery.length));
+  };
 
   // Keyboard & scroll lock saat lightbox terbuka
   useEffect(() => {
@@ -136,15 +146,18 @@ export function GallerySection() {
 
               {/* Main display */}
               <div className="relative w-full flex-1 flex items-center justify-center p-3 sm:p-5 overflow-hidden min-h-[280px] max-h-[62vh] bg-night">
-                <motion.img
-                  key={active}
-                  src={asset(wedding.gallery[active].src)}
-                  alt={wedding.gallery[active].title}
-                  className="max-h-[58vh] sm:max-h-[60vh] max-w-full object-contain rounded-xl border border-gold/30 shadow-2xl"
-                  initial={{ opacity: 0, scale: 0.97 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                />
+                <AnimatePresence mode="popLayout" custom={direction}>
+                  <motion.img
+                    key={active}
+                    src={asset(wedding.gallery[active].src)}
+                    alt={wedding.gallery[active].title}
+                    className="max-h-[58vh] sm:max-h-[60vh] max-w-full object-contain rounded-xl border border-gold/30 shadow-2xl"
+                    initial={{ opacity: 0, x: direction * 80, scale: 0.97 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: direction * -80, scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 26 }}
+                  />
+                </AnimatePresence>
 
                 <button
                   onClick={(e) => { e.stopPropagation(); prev(); }}

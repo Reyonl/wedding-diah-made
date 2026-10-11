@@ -31,7 +31,8 @@ function BankCard({
   return (
     <Reveal delay={index * 0.15}>
       <motion.div
-        whileHover={{ y: -8, rotateX: 3 }}
+        whileHover={{ y: -10, rotateX: 4, rotateZ: -1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20, mass: 0.7 }}
         initial={false}
         className={`relative p-8 rounded-3xl bg-gradient-to-br ${account.cardGradient} border-2 border-gold overflow-hidden gold-box-shadow`}
         style={{ transformPerspective: 800 }}
@@ -85,7 +86,11 @@ function BankCard({
         </div>
 
         {/* Kilau kartu */}
-        <div className="absolute -top-1/2 -right-1/3 w-52 h-52 bg-white/10 blur-2xl rounded-full pointer-events-none" />
+        <motion.div
+          className="absolute -top-1/2 -right-1/3 w-52 h-52 bg-white/10 blur-2xl rounded-full pointer-events-none"
+          animate={{ x: [0, 20, 0], opacity: [0.08, 0.15, 0.08] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
       </motion.div>
     </Reveal>
   );
