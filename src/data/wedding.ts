@@ -61,8 +61,8 @@ export interface WeddingData {
   };
   maps: string;
   gifts: {
-    bca: BankAccount;
     mandiri: BankAccount;
+    bca?: BankAccount;
   };
   hashtag: string;
   music: {
@@ -132,11 +132,6 @@ export const wedding: WeddingData = {
   },
   maps: "https://maps.app.goo.gl/PXkcZmXVvkohWC269",
   gifts: {
-    bca: {
-      bank: "BCA",
-      number: "2020507023",
-      holder: "I Made Ariana Putra",
-    },
     mandiri: {
       bank: "Mandiri",
       number: "1760004245781",

@@ -142,17 +142,9 @@ export function GiftSection() {
           </p>
         </div>
 
-        {/* Two Physical-Style Bank Cards */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 lg:gap-10 mb-14">
-          {/* Card 1: BCA (Gold foil finish) */}
-          <BankCard
-            bank={gifts.bca.bank}
-            number={gifts.bca.number}
-            holder={gifts.bca.holder}
-            isGoldFoil={true}
-          />
-
-          {/* Card 2: Mandiri (Velvet-dark finish) */}
+        {/* Physical-Style Bank Card (Centered) */}
+        <div className="flex justify-center mb-14">
+          {/* Card: Mandiri a.n. Diah Insani (Velvet-dark finish) */}
           <BankCard
             bank={gifts.mandiri.bank}
             number={gifts.mandiri.number}

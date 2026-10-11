@@ -96,14 +96,6 @@ export const wedding = {
   ],
   bankAccounts: [
     {
-      bank: canonicalWedding.gifts.bca.bank,
-      noRek: canonicalWedding.gifts.bca.number,
-      holder: canonicalWedding.gifts.bca.holder,
-      culture: "✦ BALI",
-      cardGradient: "from-[#2a1c0d] via-[#3d2a12] to-[#5a3a14]",
-      accent: "#f2c94c",
-    },
-    {
       bank: canonicalWedding.gifts.mandiri.bank,
       noRek: canonicalWedding.gifts.mandiri.number,
       holder: canonicalWedding.gifts.mandiri.holder,
